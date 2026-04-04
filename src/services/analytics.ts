@@ -9,9 +9,9 @@ export type FunnelAnalyticsResponse = {
   funnelData: FunnelDataItem[];
 };
 
-export const getFunnelAnalytics = async () => {
+export const getFunnelAnalytics = async (): Promise<FunnelAnalyticsResponse> => {
   const response = await fetch("/mocks/funnelData.json");
-  return response.json() as Promise<FunnelAnalyticsResponse>;
+  return response.json();
   // Real API:
-  // return getRequest<FunnelAnalyticsResponse>("/api/v1/projects/analytics/funnel");
+  // return getRequest("/api/v1/projects/analytics/funnel");
 };
