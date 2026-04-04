@@ -16,9 +16,9 @@ const successHandler = <T>(response: AxiosResponse<T>) => {
 
 axiosApiInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const token = sessionStorage.getItem("token");
+    const accessToken = sessionStorage.getItem("accessToken");
     const projectKey = sessionStorage.getItem("projectKey");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
     if (projectKey) config.headers["X-Project-Key"] = projectKey;
     return config;
   }
@@ -26,10 +26,31 @@ axiosApiInstance.interceptors.request.use(
 
 axiosApiInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      sessionStorage.removeItem("token");
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      const refreshToken = sessionStorage.getItem("refreshToken");
+      if (refreshToken) {
+        try {
+          const { data } = await axios.post(`${baseURL}/api/v1/auth/refresh`, {
+            refreshToken,
+          });
+          sessionStorage.setItem("accessToken", data.accessToken);
+          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+          return axiosApiInstance(originalRequest);
+        } catch {
+          sessionStorage.removeItem("accessToken");
+          sessionStorage.removeItem("refreshToken");
+        }
+      } else {
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("refreshToken");
+      }
     }
+
     return Promise.reject(error);
   }
 );
