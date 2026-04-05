@@ -84,7 +84,7 @@ jobs:
       - name: Update FRONTEND_TAG in deploy repo
         shell: bash
         run: |
-          ENV_FILE="infra-deploy/${{ steps.meta.outputs.target_env_file }}"
+          ENV_FILE="deploy/${{ steps.meta.outputs.target_env_file }}"
           NEW_TAG="${{ steps.meta.outputs.image_tag }}"
 
           if [ ! -f "$ENV_FILE" ]; then
