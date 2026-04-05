@@ -74,16 +74,10 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.created=${{ steps.meta.outputs.created_at }}
 
-      - name: Debug auth
-        run: |
-          curl -H "Authorization: Bearer ${{ secrets.DEPLOY_REPO_PAT }}" \
-          https://api.github.com/repos/DontYouKnowFunnel/LandOm-Deploy
-
       - name: Checkout deploy repository
         uses: actions/checkout@v4
         with:
           repository: ${{ env.DEPLOY_REPO }}
-          token: ${{ secrets.DEPLOY_REPO_PAT }}
           path: deploy
           ref: main
 
