@@ -120,7 +120,7 @@ jobs:
       - name: Commit and push deploy repo changes
         shell: bash
         run: |
-          cd infra-deploy
+          cd deploy
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
