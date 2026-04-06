@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set image metadata
         id: meta
@@ -81,11 +83,12 @@ jobs:
           token: ${{ secrets.DEPLOY_REPO_PAT }}
           path: deploy
           ref: main
+          persist-credentials: true
 
       - name: Update FRONTEND_TAG in deploy repo
         shell: bash
         run: |
-          ENV_FILE="infra-deploy/${{ steps.meta.outputs.target_env_file }}"
+          ENV_FILE="deploy/${{ steps.meta.outputs.target_env_file }}"
           NEW_TAG="${{ steps.meta.outputs.image_tag }}"
 
           if [ ! -f "$ENV_FILE" ]; then
@@ -121,7 +124,7 @@ jobs:
       - name: Commit and push deploy repo changes
         shell: bash
         run: |
-          cd infra-deploy
+          cd deploy
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -133,4 +136,5 @@ jobs:
           fi
 
           git commit -m "Chore: 프론트엔드 Docker 업데이트 (${{ steps.meta.outputs.image_tag }})"
+          git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_REPO_PAT }}@github.com/DontYouKnowFunnel/LandOm-Deploy.git
           git push origin HEAD:main
