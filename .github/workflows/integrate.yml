@@ -65,10 +65,13 @@ jobs:
 
       - name: Build and push image
         uses: docker/build-push-action@v6
+        environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
         with:
           context: .
           file: ./Dockerfile
           push: true
+          build-args: |
+            BACKEND_URL=${{ secrets.BACKEND_URL }}
           tags: ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.image_tag }}
           labels: |
             org.opencontainers.image.title=landom-frontend
