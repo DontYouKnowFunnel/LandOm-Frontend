@@ -59,15 +59,27 @@ export const getRequest = async <T>(url: string, params?: any) => {
   return axiosApiInstance.get<T>(url, { params }).then(successHandler);
 };
 
-export const postRequest = async <T>(url: string, payload: any, options?: any) => {
+export const postRequest = async <T>(
+  url: string,
+  payload: any,
+  options?: any
+) => {
   return axiosApiInstance.post<T>(url, payload, options).then(successHandler);
 };
 
-export const putRequest = async <T>(url: string, payload: any, options?: any) => {
+export const putRequest = async <T>(
+  url: string,
+  payload: any,
+  options?: any
+) => {
   return axiosApiInstance.put<T>(url, payload, options).then(successHandler);
 };
 
-export const patchRequest = async <T>(url: string, payload: any, options?: any) => {
+export const patchRequest = async <T>(
+  url: string,
+  payload: any,
+  options?: any
+) => {
   return axiosApiInstance.patch<T>(url, payload, options).then(successHandler);
 };
 

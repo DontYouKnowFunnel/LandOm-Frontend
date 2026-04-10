@@ -21,7 +21,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -69,6 +69,8 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          build-args: |
+            BACKEND_URL=${{ secrets.BACKEND_URL }}
           tags: ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.image_tag }}
           labels: |
             org.opencontainers.image.title=landom-frontend
