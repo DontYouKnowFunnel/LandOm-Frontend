@@ -66,6 +66,13 @@ export const AiIcon = ({
   );
 };
 
+export const AXIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return <Icon icon="ix:ai" className={className} {...(props as object)} />;
+};
+
 export const SortIcon = ({
   className,
   ...props
@@ -181,5 +188,145 @@ export const GenericIcon = ({
 }: HTMLAttributes<HTMLSpanElement>) => {
   return (
     <Icon icon="lucide:shapes" className={className} {...(props as object)} />
+  );
+};
+
+export const CartIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:shopping-cart"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const UserIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:user" className={className} {...(props as object)} />
+  );
+};
+
+export const MonitorIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:monitor-smartphone"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const ClockIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:clock" className={className} {...(props as object)} />
+  );
+};
+
+export const RepeatIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:repeat-2" className={className} {...(props as object)} />
+  );
+};
+
+export const GlobeIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:globe" className={className} {...(props as object)} />
+  );
+};
+
+export const PlayButtonIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:play-circle-rounded"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const ChevronRightIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:chevron-right"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const ChevronDownIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:chevron-down"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const StatusExploringIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:more-horiz"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const StatusConvertedIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:check-rounded"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const StatusExitedIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:close-rounded"
+      className={className}
+      {...(props as object)}
+    />
   );
 };
