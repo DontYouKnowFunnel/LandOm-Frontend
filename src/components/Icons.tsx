@@ -291,3 +291,42 @@ export const ChevronDownIcon = ({
     />
   );
 };
+
+export const StatusExploringIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:more-horiz"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const StatusConvertedIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:check-rounded"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const StatusExitedIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:close-rounded"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
