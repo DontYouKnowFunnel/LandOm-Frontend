@@ -265,3 +265,29 @@ export const PlayButtonIcon = ({
     />
   );
 };
+
+export const ChevronRightIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:chevron-right"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const ChevronDownIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:chevron-down"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
