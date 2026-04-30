@@ -17,7 +17,7 @@ const SidebarItem = ({ isActive, icon, label, ...props }: SidebarItemProps) => {
         }
       >
         <span className="text-blue-500 flex items-center">{icon}</span>
-        <span className="text-sm font-semibold text-blue-500">{label}</span>
+        <span className="text-sm font-bold text-blue-500">{label}</span>
       </div>
     );
   }
