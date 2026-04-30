@@ -21,17 +21,17 @@ const AI_INSIGHT: Insight = {
 };
 
 const REACH_SECTIONS = [
-  { label: "Hero", ratio: 1.0 },
-  { label: "Features", ratio: 0.74 },
-  { label: "Pricing", ratio: 0.5 },
-  { label: "CTA", ratio: 0.88 },
+  { ratio: 1.0 },
+  { ratio: 0.74 },
+  { ratio: 0.5 },
+  { ratio: 0.88 },
 ];
 
 const COMPARE_SECTIONS = [
-  { label: "Hero", ratio: 1.0 },
-  { label: "Features", ratio: 0.74 },
-  { label: "Pricing", ratio: 0.5 },
-  { label: "CTA", ratio: 0.88 },
+  { ratio: 1.0 },
+  { ratio: 0.74 },
+  { ratio: 0.5 },
+  { ratio: 0.88 },
 ];
 
 const Main = () => {
