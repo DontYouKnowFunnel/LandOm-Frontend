@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import brandRow from "../../assets/image/brandRow.svg";
 import { login } from "../../services/auth";
 
@@ -73,9 +73,12 @@ const Login = () => {
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
             />
-            <span className="text-xs font-semibold text-slate-800 self-end">
+            <Link
+              to="/signup"
+              className="text-xs font-semibold text-slate-800 self-end hover:text-blue-500 transition-colors"
+            >
               회원가입
-            </span>
+            </Link>
           </div>
           {errorMessage && (
             <span className="text-xs font-medium text-red-500">{errorMessage}</span>

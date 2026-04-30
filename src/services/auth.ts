@@ -24,6 +24,7 @@ export const login =
 export type SignUpPayload = {
   username: string;
   password: string;
+  nickname: string;
 };
 
 export const signUp =
