@@ -11,10 +11,12 @@ import Report from "./pages/report/Report";
 import Session from "./pages/session/Session";
 import AI from "./pages/AI/AI";
 import Login from "./pages/login/Login";
+import SignUp from "./pages/signup/SignUp";
 
 function AppLayout() {
   const { pathname } = useLocation();
-  const isLoginPage = pathname.startsWith("/login");
+  const isLoginPage =
+    pathname.startsWith("/login") || pathname.startsWith("/signup");
   const accessToken = sessionStorage.getItem("accessToken");
 
   return (
@@ -23,6 +25,7 @@ function AppLayout() {
       <main className="flex flex-1 bg-[#F8FAFC]">
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route
             path="/"
             element={accessToken ? <Main /> : <Navigate to="/login" replace />}
