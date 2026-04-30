@@ -5,9 +5,7 @@ import SectionFunnelChart from "../../components/main/SectionFunnelChart";
 import SessionTable from "../../components/main/SessionTable";
 import SectionAnalysisCard from "../../components/main/SectionAnalysisCard";
 import CompareAnalysisCard from "../../components/main/CompareAnalysisCard";
-import AIInsightCard, {
-  type Insight,
-} from "../../components/main/AIInsightCard";
+import AIInsightCard from "../../components/main/AIInsightCard";
 import {
   UserIcon,
   MonitorIcon,
@@ -15,10 +13,6 @@ import {
   ClockIcon,
 } from "../../components/Icons";
 import { getProjects } from "../../services/project";
-
-const AI_INSIGHT: Insight = {
-  text: "기능 소개 섹션에서 사용자 이탈이 많이 발생합니다. AI 추천 개선안을 적용하면, 전환율이 7.2% 향상될 것으로 예상됩니다.",
-};
 
 const REACH_SECTIONS = [
   { ratio: 1.0 },
@@ -103,7 +97,8 @@ const Main = () => {
         >
           <div style={{ width: "384px" }} className="h-full">
             <AIInsightCard
-              insight={AI_INSIGHT}
+              section="기능 소개"
+              conversionRate="7.2%"
               onClose={() => setShowInsight(false)}
             />
           </div>
