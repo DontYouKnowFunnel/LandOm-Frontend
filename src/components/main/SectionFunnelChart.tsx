@@ -60,7 +60,7 @@ const SectionFunnelChart = () => {
   }, []);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
+    <div className="bg-white rounded-2xl border border-slate-200 p-3.5">
       <span className="text-sm font-medium text-slate-600 block ">
         퍼널 그래프
       </span>
