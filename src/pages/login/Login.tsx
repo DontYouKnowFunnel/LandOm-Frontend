@@ -38,7 +38,9 @@ const Login = () => {
       navigate("/", { replace: true });
     } catch (error) {
       if (axios.isAxiosError<{ message?: string }>(error)) {
-        setErrorMessage(error.response?.data?.message ?? "로그인에 실패했습니다.");
+        setErrorMessage(
+          error.response?.data?.message ?? "로그인에 실패했습니다."
+        );
       } else {
         setErrorMessage("로그인에 실패했습니다.");
       }
@@ -75,23 +77,27 @@ const Login = () => {
             />
             <Link
               to="/signup"
-              className="text-xs font-semibold text-slate-800 self-end hover:text-blue-500 transition-colors"
+              className="text-xs font-medium text-slate-800 self-end hover:text-blue-500 transition-colors"
             >
               회원가입
             </Link>
           </div>
-          {errorMessage && (
-            <span className="text-xs font-medium text-red-500">{errorMessage}</span>
-          )}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex justify-center p-2 bg-blue-500 rounded-lg disabled:opacity-60"
-          >
-            <span className="text-sm font-semibold text-white text-center">
-              {isLoading ? "로그인 중..." : "로그인"}
-            </span>
-          </button>
+          <div className=" flex flex-col items-center">
+            {errorMessage && (
+              <span className="text-xs font-medium text-red-500">
+                {errorMessage}
+              </span>
+            )}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex justify-center p-2 bg-blue-500 rounded-lg disabled:opacity-60 mt-2"
+            >
+              <span className="text-sm font-semibold text-white text-center">
+                {isLoading ? "로그인 중..." : "로그인"}
+              </span>
+            </button>
+          </div>
         </form>
       </div>
     </div>
