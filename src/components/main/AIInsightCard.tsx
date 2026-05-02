@@ -11,25 +11,22 @@ const AIInsightCard = ({
   conversionRate,
   onClose,
 }: AIInsightCardProps) => (
-  <div className="relative rounded-2xl bg-slate-900 overflow-hidden h-full flex flex-col">
-    <div
-      className="absolute top-0 right-0 w-40 h-40 pointer-events-none"
-      style={{ background: "#2563EB", opacity: 0.33, filter: "blur(64px)" }}
-    />
+  <div className="relative h-[280px] overflow-hidden rounded-xl bg-slate-900 shadow-[0_0_16px_4px_rgba(0,0,0,0.25)]">
+    <div className="pointer-events-none absolute -right-[23px] -top-[19px] h-32 w-32 rounded-xl bg-blue-600 opacity-30 blur-[32px]" />
 
-    <div className="relative z-10 flex flex-col h-full">
+    <div className="relative z-10 flex h-full flex-col gap-5 p-5">
       {onClose && (
-        <div className="flex justify-end px-5 pt-5">
+        <div className="absolute right-4 top-4">
           <button
             onClick={onClose}
-            className="text-white hover:text-slate-300 transition-colors p-0.5 rounded"
+            className="flex h-6 w-6 items-center justify-center text-white transition-colors hover:text-slate-300"
             aria-label="AI Insights 닫기"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
-                d="M1 1l12 12M13 1L1 13"
+                d="M6 6L18 18M18 6L6 18"
                 stroke="currentColor"
-                strokeWidth="1.8"
+                strokeWidth="2"
                 strokeLinecap="round"
               />
             </svg>
@@ -37,28 +34,28 @@ const AIInsightCard = ({
         </div>
       )}
 
-      <div className="flex-1 px-5 flex flex-col justify-center">
-        <div className="flex items-center gap-2">
-          <AXIcon className="text-blue-400 text-xl" />
-          <span className="text-base font-bold tracking-widest text-blue-400 uppercase">
-            AI Insights
+      <div className="flex flex-1 flex-col justify-center gap-3">
+        <div className="flex items-center gap-[6px]">
+          <AXIcon className="text-2xl text-blue-400" />
+          <span className="text-sm font-semibold uppercase leading-5 tracking-[1.4px] text-blue-400">
+            AI INSIGHTS
           </span>
         </div>
-        <p className="text-xl font-semibold text-white leading-snug mt-3">
+        <p className="text-xl font-semibold leading-7 text-white">
           주요 개선 포인트
         </p>
-        <p className="text-base font-normal text-slate-300 leading-relaxed mt-3">
+        <p className="text-base font-normal leading-6 text-slate-300">
           <span className="font-bold text-white">{section} 섹션</span>
-          {
-            "에서 사용자 이탈이 많이 발생합니다. AI 추천 개선안을 적용하면, 전환율이 "
-          }
+          <span>{"에서 사용자 이탈이 많이 발생합니다."}</span>
+          <br />
+          <span>{"AI 추천 개선안을 적용하면, 전환율이 "}</span>
           <span className="font-bold text-blue-500">{conversionRate}</span>
-          {" 향상될 것으로 예상됩니다."}
+          <span>{" 향상될 것으로 예상됩니다."}</span>
         </p>
       </div>
 
-      <div className="px-4 pb-4">
-        <button className="w-full bg-white rounded-sm py-3 mt-6 mb-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
+      <div>
+        <button className="h-11 w-full rounded bg-white px-4 py-3 text-sm font-bold leading-5 text-slate-900 transition-colors hover:bg-slate-100">
           랜딩 페이지 개선안 보기
         </button>
       </div>
