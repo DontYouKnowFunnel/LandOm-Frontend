@@ -11,7 +11,7 @@ const AIInsightCard = ({
   conversionRate,
   onClose,
 }: AIInsightCardProps) => (
-  <div className="relative h-[280px] overflow-hidden rounded-xl bg-slate-900 shadow-[0_0_16px_4px_rgba(0,0,0,0.25)]">
+  <div className="relative h-full min-h-[280px] rounded-xl bg-slate-900 shadow-[0_0_16px_4px_rgba(0,0,0,0.25)] overflow-hidden">
     <div className="pointer-events-none absolute -right-[23px] -top-[19px] h-32 w-32 rounded-xl bg-blue-600 opacity-30 blur-[32px]" />
 
     <div className="relative z-10 flex h-full flex-col gap-5 p-5">

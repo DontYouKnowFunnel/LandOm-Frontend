@@ -92,7 +92,7 @@ const Main = () => {
             <SessionTable />
           </div>
           <div
-            className={`h-full shrink-0 overflow-hidden transition-all duration-300 ease-in-out ${
+            className={`h-full shrink-0 transition-all duration-300 ease-in-out ${
               showInsight ? "max-w-96 opacity-100" : "max-w-0 opacity-0"
             }`}
           >
