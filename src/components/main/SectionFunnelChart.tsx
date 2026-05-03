@@ -26,7 +26,7 @@ const BarColumn = ({ ratio, color, animated, index }: BarColumnProps) => {
     <div className="relative flex-1" style={{ height: CONTAINER_HEIGHT }}>
       {/* Badge floating just above bar top */}
       <div
-        className="absolute left-1/2 -translate-x-1/2 z-10 bg-white border-2 rounded-sm px-2 py-0.5 text-sm font-bold text-slate-700 whitespace-nowrap"
+        className="absolute left-1/2 -translate-x-1/2 z-10 bg-white border-2 rounded-sm px-3 py-0.5 text-sm font-bold text-slate-700 whitespace-nowrap"
         style={{
           borderColor: color,
           bottom: `${targetHeight - 14}px`,

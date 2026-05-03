@@ -38,7 +38,7 @@ const Main = () => {
         const firstProjectApiKey = projectsResponse.projects[0].apiKey;
         if (firstProjectApiKey)
           sessionStorage.setItem("projectKey", firstProjectApiKey);
-      } catch (e) {
+      } catch {
         return;
       }
     };
@@ -47,75 +47,79 @@ const Main = () => {
   }, []);
 
   return (
-    <div className="flex flex-1 flex-col p-6 gap-4 bg-slate-50 overflow-y-auto">
+    <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-slate-50 p-5">
       <PageHeader
-        projectName="Bitda Landing Page"
+        projectName="SaaS Landing Page"
         url="https://example-saas.com"
       />
 
-      <div className="grid grid-cols-4 gap-4">
-        <MetricCard
-          icon={UserIcon}
-          iconRotate={7.36}
-          iconClassName="text-slate-200"
-          label="방문자 수"
-          value="12,480"
-        />
-        <MetricCard
-          icon={MonitorIcon}
-          iconRotate={5.31}
-          iconClassName="text-slate-200"
-          label="세션 수"
-          value="9,320"
-        />
-        <MetricCard
-          icon={RepeatIcon}
-          iconRotate={9.78}
-          iconClassName="text-slate-200"
-          label="전환율"
-          value="30.0%"
-        />
-        <MetricCard
-          icon={ClockIcon}
-          iconRotate={5.31}
-          iconClassName="text-slate-200"
-          label="평균 체류 시간"
-          value="2분 34초"
-        />
-      </div>
-
-      <SectionFunnelChart />
-
-      <div className="flex gap-4 items-stretch">
-        <div className="flex-1 min-w-0">
-          <SessionTable />
+      <div className="flex flex-1 flex-col gap-4 rounded-[14px] border border-slate-200 bg-white p-5">
+        <div className="grid grid-cols-4 gap-4">
+          <MetricCard
+            icon={UserIcon}
+            iconRotate={7.36}
+            iconClassName="text-slate-200"
+            label="방문자 수"
+            value="42,380"
+          />
+          <MetricCard
+            icon={MonitorIcon}
+            iconRotate={5.31}
+            iconClassName="text-slate-200"
+            label="세션 수"
+            value="58,912"
+          />
+          <MetricCard
+            icon={RepeatIcon}
+            iconRotate={9.78}
+            iconClassName="text-slate-200"
+            label="전환률"
+            value="4.82%"
+          />
+          <MetricCard
+            icon={ClockIcon}
+            iconRotate={5.31}
+            iconClassName="text-slate-200"
+            label="평균 체류시간"
+            value="03:24"
+          />
         </div>
-        <div
-          className={`transition-all duration-300 ease-in-out overflow-hidden shrink-0 h-full ${
-            showInsight ? "max-w-96 opacity-100" : "max-w-0 opacity-0"
-          }`}
-        >
-          <div style={{ width: "384px" }} className="h-full">
-            <AIInsightCard
-              section="기능 소개"
-              conversionRate="7.2%"
-              onClose={() => setShowInsight(false)}
-            />
+
+        <SectionFunnelChart />
+
+        <div className="flex items-stretch gap-4">
+          <div className="min-w-0 flex-1">
+            <SessionTable />
+          </div>
+          <div
+            className={`h-full shrink-0 transition-all duration-300 ease-in-out ${
+              showInsight ? "max-w-96 opacity-100" : "max-w-0 opacity-0"
+            }`}
+          >
+            <div className="h-full w-96">
+              <AIInsightCard
+                section="기능 소개"
+                conversionRate="7.2%"
+                onClose={() => setShowInsight(false)}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <SectionAnalysisCard
-          title="랜딩페이지 점수"
-          value="33/100"
-          sections={REACH_SECTIONS}
-        />
-        <CompareAnalysisCard
-          title="과거 대비 전환율 비교"
-          change={14}
-          sections={COMPARE_SECTIONS}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <SectionAnalysisCard
+            title="랜딩페이지 점수"
+            value="33/100"
+            period="2026-04-12 - 2026-04-19"
+            sections={REACH_SECTIONS}
+          />
+          <CompareAnalysisCard
+            title="과거 대비 전환률 비교"
+            change={4.24}
+            period="2026-04-12 - 2026-04-19"
+            sections={COMPARE_SECTIONS}
+          />
+        </div>
       </div>
     </div>
   );
