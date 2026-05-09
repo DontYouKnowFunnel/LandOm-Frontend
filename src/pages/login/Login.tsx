@@ -2,14 +2,22 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import brandRow from "../../assets/image/brandRow.svg";
-import { login } from "../../services/auth";
+import { useLogin } from "../../api/generated";
 
 const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const loginMutation = useLogin({
+    mutation: {
+      onSuccess: (response) => {
+        sessionStorage.setItem("accessToken", response.accessToken ?? "");
+
+        sessionStorage.setItem("refreshToken", response.refreshToken ?? "");
+      },
+    },
+  });
 
   useEffect(() => {
     const accessToken = sessionStorage.getItem("accessToken");
@@ -26,25 +34,13 @@ const Login = () => {
     }
 
     setErrorMessage("");
-    setIsLoading(true);
 
-    try {
-      const request = await login({ username: trimmedUsername, password });
-      const response = await request();
-
-      sessionStorage.setItem("accessToken", response.accessToken);
-      sessionStorage.setItem("refreshToken", response.refreshToken);
-
-      navigate("/", { replace: true });
-    } catch (error) {
-      if (axios.isAxiosError<{ message?: string }>(error)) {
-        setErrorMessage(error.response?.data?.message ?? "로그인에 실패했습니다.");
-      } else {
-        setErrorMessage("로그인에 실패했습니다.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    await loginMutation.mutateAsync({
+      data: {
+        username: trimmedUsername,
+        password,
+      },
+    });
   };
 
   return (
@@ -80,16 +76,24 @@ const Login = () => {
               회원가입
             </Link>
           </div>
-          {errorMessage && (
-            <span className="text-xs font-medium text-red-500">{errorMessage}</span>
+          {errorMessage != "" && (
+            <span className="text-xs font-medium text-red-500">
+              {errorMessage}
+            </span>
+          )}
+          {axios.isAxiosError(loginMutation.error) && (
+            <span className="text-xs font-medium text-red-500">
+              {loginMutation.error.response?.data?.message ??
+                "로그인에 실패했습니다."}
+            </span>
           )}
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={loginMutation.isPending}
             className="flex justify-center p-2 bg-blue-500 rounded-lg disabled:opacity-60"
           >
             <span className="text-sm font-semibold text-white text-center">
-              {isLoading ? "로그인 중..." : "로그인"}
+              {loginMutation.isPending ? "로그인 중..." : "로그인"}
             </span>
           </button>
         </form>

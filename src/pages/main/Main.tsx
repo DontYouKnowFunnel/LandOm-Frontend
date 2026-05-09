@@ -12,7 +12,7 @@ import {
   RepeatIcon,
   ClockIcon,
 } from "../../components/Icons";
-import { getProjects } from "../../services/project";
+// import { getProjects } from "../../services/project";
 
 const REACH_SECTIONS = [
   { ratio: 1.0 },
@@ -32,18 +32,17 @@ const Main = () => {
   const [showInsight, setShowInsight] = useState(true);
 
   useEffect(() => {
-    const setProjectKey = async () => {
-      try {
-        const projectsResponse = await getProjects();
-        const firstProjectApiKey = projectsResponse.projects[0].apiKey;
-        if (firstProjectApiKey)
-          sessionStorage.setItem("projectKey", firstProjectApiKey);
-      } catch (e) {
-        return;
-      }
-    };
-
-    void setProjectKey();
+    // const setProjectKey = async () => {
+    //   try {
+    //     // const projectsResponse = await getProjects();
+    //     // const firstProjectApiKey = projectsResponse.projects[0].apiKey;
+    //     if (firstProjectApiKey)
+    //       sessionStorage.setItem("projectKey", firstProjectApiKey);
+    //   } catch (e) {
+    //     return;
+    //   }
+    // };
+    // void setProjectKey();
   }, []);
 
   return (
