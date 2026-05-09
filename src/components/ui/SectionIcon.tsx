@@ -21,28 +21,32 @@ function SectionIconBase({
   bgClass,
   icon,
   label,
+  showLabel = false,
   className,
   ...props
 }: {
   bgClass: string;
   icon: ReactNode;
   label: ReactNode;
+  showLabel?: boolean;
 } & SectionIconProps) {
   return (
     <div
-      className={"inline-flex flex-col items-center gap-2 " + (className ?? "")}
+      className={"inline-flex flex-col items-center gap-1 " + (className ?? "")}
       {...props}
     >
       <div
         className={
-          "w-16 h-16 rounded-2xl flex items-center justify-center " + bgClass
+          "w-8 h-8 rounded-lg flex items-center justify-center " + bgClass
         }
       >
         {icon}
       </div>
-      <span className="text-xs font-medium text-black text-center leading-3.75">
-        {label}
-      </span>
+      {showLabel ? (
+        <span className="text-xs font-medium text-black text-center leading-3.75">
+          {label}
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -50,7 +54,7 @@ function SectionIconBase({
 export const HeroSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-blue-500"
-    icon={<HeroIcon className="text-[26px] text-white" />}
+    icon={<HeroIcon className="text-[16px] text-white" />}
     label="HERO"
     {...props}
   />
@@ -59,7 +63,7 @@ export const HeroSectionIcon = (props: SectionIconProps) => (
 export const ProblemSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-red-500"
-    icon={<ProblemIcon className="text-[26px] text-white" />}
+    icon={<ProblemIcon className="text-[16px] text-white" />}
     label="PROBLEM"
     {...props}
   />
@@ -68,7 +72,7 @@ export const ProblemSectionIcon = (props: SectionIconProps) => (
 export const TargetSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-orange-500"
-    icon={<TargetIcon className="text-[26px] text-white" />}
+    icon={<TargetIcon className="text-[16px] text-white" />}
     label="TARGET"
     {...props}
   />
@@ -77,7 +81,7 @@ export const TargetSectionIcon = (props: SectionIconProps) => (
 export const UsecaseSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-blue-600"
-    icon={<UsecaseIcon className="text-[26px] text-white" />}
+    icon={<UsecaseIcon className="text-[16px] text-white" />}
     label="USECASE"
     {...props}
   />
@@ -86,7 +90,7 @@ export const UsecaseSectionIcon = (props: SectionIconProps) => (
 export const FeatureSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-purple-500"
-    icon={<FeatureIcon className="text-[26px] text-white" />}
+    icon={<FeatureIcon className="text-[16px] text-white" />}
     label="FEATURE"
     {...props}
   />
@@ -95,7 +99,7 @@ export const FeatureSectionIcon = (props: SectionIconProps) => (
 export const ValuePropSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-teal-500"
-    icon={<ValuePropIcon className="text-[26px] text-white" />}
+    icon={<ValuePropIcon className="text-[16px] text-white" />}
     label={
       <>
         VALUE
@@ -110,7 +114,7 @@ export const ValuePropSectionIcon = (props: SectionIconProps) => (
 export const TrustSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-emerald-500"
-    icon={<TrustIcon className="text-[26px] text-white" />}
+    icon={<TrustIcon className="text-[16px] text-white" />}
     label="TRUST"
     {...props}
   />
@@ -119,7 +123,7 @@ export const TrustSectionIcon = (props: SectionIconProps) => (
 export const PricingSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-amber-500"
-    icon={<PricingIcon className="text-[26px] text-white" />}
+    icon={<PricingIcon className="text-[16px] text-white" />}
     label="PRICING"
     {...props}
   />
@@ -128,16 +132,16 @@ export const PricingSectionIcon = (props: SectionIconProps) => (
 export const FaqSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-cyan-500"
-    icon={<FaqIcon className="text-[26px] text-white" />}
+    icon={<FaqIcon className="text-[16px] text-white" />}
     label="FAQ"
     {...props}
   />
 );
 
-export const CtaselectionSectionIcon = (props: SectionIconProps) => (
+export const CtaSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-pink-500"
-    icon={<CtaselectionIcon className="text-[26px] text-white" />}
+    icon={<CtaselectionIcon className="text-[16px] text-white" />}
     label={
       <>
         CTA
@@ -152,7 +156,7 @@ export const CtaselectionSectionIcon = (props: SectionIconProps) => (
 export const GenericSectionIcon = (props: SectionIconProps) => (
   <SectionIconBase
     bgClass="bg-slate-500"
-    icon={<GenericIcon className="text-[26px] text-white" />}
+    icon={<GenericIcon className="text-[16px] text-white" />}
     label="GENERIC"
     {...props}
   />

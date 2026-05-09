@@ -9,12 +9,14 @@ interface CompareBar {
 interface CompareAnalysisCardProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   change: number;
+  period: string;
   sections: CompareBar[];
 }
 
 const CompareAnalysisCard = ({
   title,
   change,
+  period,
   sections,
   className = "",
   ...props
@@ -27,24 +29,39 @@ const CompareAnalysisCard = ({
   }, []);
 
   const valueColor =
-    change > 0 ? "text-red-500" : change < 0 ? "text-blue-400" : "text-slate-400";
+    change > 0
+      ? "text-red-500"
+      : change < 0
+      ? "text-blue-400"
+      : "text-slate-400";
   const changeLabel = change > 0 ? `+${change}%` : `${change}%`;
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-slate-200 p-3.5 flex flex-col gap-4 ${className}`}
+      className={`relative h-[208px] overflow-hidden rounded-xl border border-slate-200 bg-white p-3 ${className}`}
       {...props}
     >
-      <div className="flex flex-col gap-1">
+      <div className="flex w-full items-start justify-between leading-5">
         <span className="text-sm font-medium text-slate-600">{title}</span>
-        <span className={`text-4xl font-bold leading-none ${valueColor}`}>
-          {changeLabel}
-        </span>
+        {period ? (
+          <span className="text-sm font-normal text-slate-400">{period}</span>
+        ) : null}
       </div>
-      <div className="flex items-end gap-3">
+      <div className="flex h-full w-full items-end justify-center gap-2">
         {sections.map((s, i) => (
           <AnalysisBar key={i} ratio={s.ratio} animated={animated} index={i} />
         ))}
+      </div>
+      <div className="absolute left-[11px] top-[43px] leading-none">
+        <span
+          aria-hidden
+          className="absolute inset-0 text-5xl font-bold text-transparent [-webkit-text-stroke:5px_#ffffff]"
+        >
+          {changeLabel}
+        </span>
+        <span className={`relative text-5xl font-bold ${valueColor}`}>
+          {changeLabel}
+        </span>
       </div>
     </div>
   );

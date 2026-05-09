@@ -64,21 +64,22 @@ const SignUp = () => {
   return (
     <div className="flex flex-1 items-center justify-center">
       <div className="flex flex-col items-start bg-white p-8 border border-slate-300 gap-6 w-96 min-h-127.5">
-        <img src={brandRow} alt="LandOm" className="h-8" />
-        <span className="text-2xl font-bold text-slate-900">회원가입</span>
-
-        {/* Progress bars */}
-        <div className="flex gap-2 w-full">
-          <div
-            className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-              step >= 2 ? "bg-green-500" : "bg-slate-100"
-            }`}
-          />
-          <div
-            className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-              step >= 3 ? "bg-green-500" : "bg-slate-100"
-            }`}
-          />
+        <div className="w-full flex flex-col items-start gap-3">
+          <img src={brandRow} alt="LandOm" className="h-8" />
+          <span className="text-2xl font-bold text-slate-900">회원가입</span>
+          {/* Progress bars */}
+          <div className="flex gap-2 w-full">
+            <div
+              className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
+                step >= 2 ? "bg-green-500" : "bg-slate-100"
+              }`}
+            />
+            <div
+              className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
+                step >= 3 ? "bg-green-500" : "bg-slate-100"
+              }`}
+            />
+          </div>
         </div>
 
         {/* Step 1 */}
@@ -126,19 +127,21 @@ const SignUp = () => {
                 autoComplete="new-password"
               />
             </div>
-            {errorMessage && (
-              <span className="text-xs font-medium text-red-500">
-                {errorMessage}
-              </span>
-            )}
-            <button
-              type="submit"
-              className="flex justify-center p-2.5 bg-blue-500 rounded-lg mt-2"
-            >
-              <span className="text-sm font-semibold text-white">
-                다음 단계
-              </span>
-            </button>
+            <div className="flex-1 flex flex-col justify-end items-center w-full">
+              {errorMessage && (
+                <span className="text-xs font-medium text-red-500">
+                  {errorMessage}
+                </span>
+              )}
+              <button
+                type="submit"
+                className="flex justify-center p-2 bg-blue-500 rounded-lg mt-2 w-full"
+              >
+                <span className="text-sm font-semibold text-white">
+                  다음 단계
+                </span>
+              </button>
+            </div>
           </form>
         )}
 
@@ -180,7 +183,7 @@ const SignUp = () => {
                     setStep(1);
                     setErrorMessage("");
                   }}
-                  className="flex-1 flex justify-center p-2.5 border border-slate-200 rounded-lg"
+                  className="flex-1 flex justify-center p-2 border border-slate-200 rounded-lg cursor-pointer"
                 >
                   <span className="text-sm font-semibold text-slate-600">
                     이전

@@ -71,7 +71,7 @@ const Login = () => {
             />
             <Link
               to="/signup"
-              className="text-xs font-semibold text-slate-800 self-end hover:text-blue-500 transition-colors"
+              className="text-xs font-medium text-slate-800 self-end hover:text-blue-500 transition-colors"
             >
               회원가입
             </Link>
