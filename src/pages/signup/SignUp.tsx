@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import brandRow from "../../assets/image/brandRow.svg";
-import { signUp } from "../../services/auth";
+import { useSignup } from "../../api/generated";
 
 type Step = 1 | 2 | 3;
 
@@ -13,8 +13,23 @@ const SignUp = () => {
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const signupMutation = useSignup({
+    mutation: {
+      onError: (error) => {
+        if (axios.isAxiosError<{ message?: string }>(error)) {
+          setErrorMessage(
+            error.response?.data?.message ?? "회원가입에 실패했습니다."
+          );
+        } else {
+          setErrorMessage("회원가입에 실패했습니다.");
+        }
+      },
+      onSuccess: () => {
+        setStep(3);
+      },
+    },
+  });
 
   const handleStep1 = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,27 +51,14 @@ const SignUp = () => {
       setErrorMessage("닉네임을 입력해주세요.");
       return;
     }
-    setIsLoading(true);
-    try {
-      const request = await signUp({
+
+    await signupMutation.mutateAsync({
+      data: {
         username: username.trim(),
         nickname: nickname.trim(),
         password,
-      });
-      await request();
-      setStep(3);
-    } catch (error) {
-      console.error("signup error:", error);
-      if (axios.isAxiosError<{ message?: string }>(error)) {
-        setErrorMessage(
-          error.response?.data?.message ?? "회원가입에 실패했습니다."
-        );
-      } else {
-        setErrorMessage("회원가입에 실패했습니다.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
+      },
+    });
   };
 
   return (
@@ -189,11 +191,11 @@ const SignUp = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading}
-                  className="flex-1 flex items-center justify-center p-2 bg-blue-500 rounded-lg cursor-pointer disabled:opacity-60"
+                  disabled={signupMutation.isPending}
+                  className="flex-1 flex justify-center p-2.5 bg-blue-500 rounded-lg disabled:opacity-60"
                 >
                   <span className="text-sm font-semibold text-white">
-                    {isLoading ? "처리 중..." : "회원가입"}
+                    {signupMutation.isPending ? "처리 중..." : "회원가입"}
                   </span>
                 </button>
               </div>

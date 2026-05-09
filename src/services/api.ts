@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import type { AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 
 const baseURL = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:8080";
 
@@ -9,10 +9,6 @@ const axiosApiInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
-
-const successHandler = <T>(response: AxiosResponse<T>) => {
-  return response.data;
-};
 
 axiosApiInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
@@ -55,34 +51,9 @@ axiosApiInstance.interceptors.response.use(
   }
 );
 
-export const getRequest = async <T>(url: string, params?: any) => {
-  return axiosApiInstance.get<T>(url, { params }).then(successHandler);
-};
-
-export const postRequest = async <T>(
-  url: string,
-  payload: any,
-  options?: any
-) => {
-  return axiosApiInstance.post<T>(url, payload, options).then(successHandler);
-};
-
-export const putRequest = async <T>(
-  url: string,
-  payload: any,
-  options?: any
-) => {
-  return axiosApiInstance.put<T>(url, payload, options).then(successHandler);
-};
-
-export const patchRequest = async <T>(
-  url: string,
-  payload: any,
-  options?: any
-) => {
-  return axiosApiInstance.patch<T>(url, payload, options).then(successHandler);
-};
-
-export const deleteRequest = async <T>(url: string, params?: any) => {
-  return axiosApiInstance.delete<T>(url, { params }).then(successHandler);
+export const mutationInstance = async <T>(
+  config: AxiosRequestConfig
+): Promise<T> => {
+  const response = await axiosApiInstance(config);
+  return response.data;
 };

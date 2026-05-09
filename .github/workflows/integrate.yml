@@ -71,6 +71,7 @@ jobs:
           push: true
           build-args: |
             BACKEND_URL=${{ secrets.BACKEND_URL }}
+            SWAGGER_URL=${{ secrets.SWAGGER_URL }}
           tags: ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.image_tag }}
           labels: |
             org.opencontainers.image.title=landom-frontend
