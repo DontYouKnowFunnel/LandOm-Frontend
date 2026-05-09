@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
-import type { FunnelDataItem } from "../../services/analytics";
 
 interface FunnelChartProps {
   data: FunnelDataItem[];
 }
+
+export type FunnelDataItem = {
+  id: number;
+  ratio: number;
+};
+
+export type FunnelAnalyticsResponse = {
+  funnelData: FunnelDataItem[];
+};
 
 const FunnelChart = ({ data }: FunnelChartProps) => {
   const [animated, setAnimated] = useState(false);
@@ -30,7 +38,9 @@ const FunnelChart = ({ data }: FunnelChartProps) => {
                 style={{
                   width: animated ? `${item.ratio * 100}%` : "0%",
                   opacity: animated ? 1 : 0,
-                  transition: `width 600ms cubic-bezier(0.4, 0, 0.2, 1) ${index * 70}ms, opacity 400ms ease ${index * 70}ms`,
+                  transition: `width 600ms cubic-bezier(0.4, 0, 0.2, 1) ${
+                    index * 70
+                  }ms, opacity 400ms ease ${index * 70}ms`,
                 }}
               >
                 <span className="text-white font-semibold text-sm whitespace-nowrap">
