@@ -13,8 +13,8 @@ const Login = () => {
     mutation: {
       onSuccess: (response) => {
         sessionStorage.setItem("accessToken", response.accessToken ?? "");
-
         sessionStorage.setItem("refreshToken", response.refreshToken ?? "");
+        navigate("/", { replace: true });
       },
     },
   });
