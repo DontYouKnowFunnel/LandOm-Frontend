@@ -1,54 +1,26 @@
 import { PlayButtonIcon } from "../Icons";
+import Skeleton from "../ui/Skeleton";
 import { StatusBadge } from "./Status";
 
 type SessionStatus = "전환" | "이탈" | "탐색중";
 
-interface SessionRow {
+export interface SessionRow {
   accessTime: string;
   sessionId: string;
   device: string;
   exitFunnel: string;
   stayTime: string;
   status: SessionStatus;
+  replayUrl?: string;
 }
 
-const MOCK_SESSIONS: SessionRow[] = [
-  {
-    accessTime: "방금 전",
-    sessionId: "S-19472",
-    device: "Chrome · Android",
-    exitFunnel: "Feature",
-    stayTime: "02:58",
-    status: "탐색중",
-  },
-  {
-    accessTime: "1시간 전",
-    sessionId: "S-19472",
-    device: "Safari · iOS",
-    exitFunnel: "Feature",
-    stayTime: "02:58",
-    status: "전환",
-  },
-  {
-    accessTime: "2일 전",
-    sessionId: "S-19472",
-    device: "IE · Windows",
-    exitFunnel: "Feature",
-    stayTime: "02:58",
-    status: "이탈",
-  },
-  {
-    accessTime: "2025-11-03",
-    sessionId: "S-19472",
-    device: "Safari · macOS",
-    exitFunnel: "Feature",
-    stayTime: "02:58",
-    status: "전환",
-  },
-];
+interface SessionTableProps {
+  sessions: SessionRow[];
+  isLoading?: boolean;
+}
 
-const SessionTable = () => (
-  <div className="rounded-xl border border-slate-200 bg-white p-3.5">
+const SessionTable = ({ sessions, isLoading = false }: SessionTableProps) => (
+  <div className="min-h-[280px] rounded-xl border border-slate-200 bg-white p-3.5">
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium leading-5 text-slate-600">최근 세션</span>
 
@@ -62,28 +34,79 @@ const SessionTable = () => (
       </div>
 
       <div className="flex flex-col gap-1.5">
-        {MOCK_SESSIONS.map((session) => (
+        {(isLoading
+          ? (Array.from({ length: 4 }, (_, index): SessionRow => ({
+              accessTime: `loading-${index}`,
+              sessionId: `loading-${index}`,
+              device: `loading-${index}`,
+              exitFunnel: `loading-${index}`,
+              stayTime: `loading-${index}`,
+              status: "탐색중",
+              replayUrl: undefined,
+            })) as SessionRow[])
+          : sessions.slice(0, 4)
+        ).map((session, index) => (
           <div
-            key={`${session.accessTime}-${session.sessionId}`}
+            key={`${session.accessTime}-${session.sessionId}-${index}`}
             className="flex items-center gap-1 rounded-lg border border-slate-100 bg-white px-2 py-1.5"
           >
-            <span className="w-full text-xs font-medium text-slate-900">{session.accessTime}</span>
-            <div className="flex w-full flex-col justify-center -space-y-0.5">
-              <span className="text-xs font-medium text-slate-900">{session.sessionId}</span>
-              <span className="text-[11px] font-normal leading-4 text-slate-500">{session.device}</span>
-            </div>
-            <span className="w-full text-xs font-medium text-slate-900">{session.exitFunnel}</span>
-            <span className="w-full text-xs font-medium text-slate-900">{session.stayTime}</span>
             <div className="w-full">
-              <StatusBadge status={session.status} />
+              {isLoading ? (
+                <Skeleton height={16} />
+              ) : (
+                <span className="text-xs font-medium text-slate-900">{session.accessTime}</span>
+              )}
+            </div>
+            <div className="flex w-full flex-col justify-center -space-y-0.5">
+              {isLoading ? (
+                <>
+                  <Skeleton height={16} />
+                  <Skeleton height={16} />
+                </>
+              ) : (
+                <>
+                  <span className="text-xs font-medium text-slate-900">{session.sessionId}</span>
+                  <span className="text-[11px] font-normal leading-4 text-slate-500">{session.device}</span>
+                </>
+              )}
+            </div>
+            <div className="w-full">
+              {isLoading ? (
+                <Skeleton height={16} />
+              ) : (
+                <span className="text-xs font-medium text-slate-900">{session.exitFunnel}</span>
+              )}
+            </div>
+            <div className="w-full">
+              {isLoading ? (
+                <Skeleton height={16} />
+              ) : (
+                <span className="text-xs font-medium text-slate-900">{session.stayTime}</span>
+              )}
+            </div>
+            <div className="w-full">
+              {isLoading ? <Skeleton height={24} /> : <StatusBadge status={session.status} />}
             </div>
             <div className="flex w-8 shrink-0 justify-center">
-              <button className="text-slate-600 transition-colors hover:text-slate-700">
+              <button
+                type="button"
+                disabled={isLoading || !session.replayUrl}
+                onClick={() => {
+                  if (!session.replayUrl) return;
+                  window.open(session.replayUrl, "_blank", "noopener,noreferrer");
+                }}
+                className="text-slate-600 transition-colors hover:text-slate-700 disabled:opacity-40"
+              >
                 <PlayButtonIcon className="text-2xl" />
               </button>
             </div>
           </div>
         ))}
+        {!isLoading && sessions.length === 0 && (
+          <div className="flex h-[186px] items-center justify-center rounded-lg border border-slate-100 bg-white px-2 py-4 text-center text-xs font-medium text-slate-400">
+            최근 세션 데이터가 없습니다.
+          </div>
+        )}
       </div>
     </div>
   </div>

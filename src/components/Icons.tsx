@@ -80,6 +80,44 @@ export const SortIcon = ({
   return <Icon icon="uil:sort" className={className} {...(props as object)} />;
 };
 
+export const SettingsIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:settings" className={className} {...(props as object)} />
+  );
+};
+
+export const CircleCheckIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:circle-check"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const PlusIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return <Icon icon="lucide:plus" className={className} {...(props as object)} />;
+};
+
+export const FolderXIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:folder-x" className={className} {...(props as object)} />
+  );
+};
+
 export const HeroIcon = ({
   className,
   ...props

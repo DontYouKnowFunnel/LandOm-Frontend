@@ -10,12 +10,54 @@ const axiosApiInstance = axios.create({
   },
 });
 
+const AUTH_REFRESH_FAILED = "AUTH_REFRESH_FAILED";
+
+export class AuthRefreshError extends Error {
+  readonly isAuthRefreshError = true;
+
+  constructor() {
+    super(AUTH_REFRESH_FAILED);
+    this.name = "AuthRefreshError";
+  }
+}
+
+const clearAuthSession = () => {
+  sessionStorage.removeItem("accessToken");
+  sessionStorage.removeItem("refreshToken");
+};
+
+let refreshPromise: Promise<string> | null = null;
+
+const getRefreshedAccessToken = async (): Promise<string> => {
+  if (refreshPromise) return refreshPromise;
+
+  const refreshToken = sessionStorage.getItem("refreshToken");
+  if (!refreshToken) {
+    throw new AuthRefreshError();
+  }
+
+  refreshPromise = axios
+    .post<{ accessToken?: string }>(`${baseURL}/api/v1/auth/refresh`, {
+      refreshToken,
+    })
+    .then(({ data }) => {
+      if (!data.accessToken) {
+        throw new AuthRefreshError();
+      }
+      sessionStorage.setItem("accessToken", data.accessToken);
+      return data.accessToken;
+    })
+    .finally(() => {
+      refreshPromise = null;
+    });
+
+  return refreshPromise;
+};
+
 axiosApiInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     const accessToken = sessionStorage.getItem("accessToken");
-    const projectKey = sessionStorage.getItem("projectKey");
     if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
-    if (projectKey) config.headers["X-Project-Key"] = projectKey;
     return config;
   }
 );
@@ -25,25 +67,26 @@ axiosApiInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const refreshToken = sessionStorage.getItem("refreshToken");
-      if (refreshToken) {
-        try {
-          const { data } = await axios.post(`${baseURL}/api/v1/auth/refresh`, {
-            refreshToken,
-          });
-          sessionStorage.setItem("accessToken", data.accessToken);
-          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-          return axiosApiInstance(originalRequest);
-        } catch {
-          sessionStorage.removeItem("accessToken");
-          sessionStorage.removeItem("refreshToken");
-        }
-      } else {
-        sessionStorage.removeItem("accessToken");
-        sessionStorage.removeItem("refreshToken");
+      try {
+        const newAccessToken = await getRefreshedAccessToken();
+        const retryRequestConfig = {
+          ...originalRequest,
+          headers: {
+            ...(originalRequest.headers ?? {}),
+            Authorization: `Bearer ${newAccessToken}`,
+          },
+          // React Query가 넘긴 기존 signal이 이미 abort 상태면 재시도도 즉시 취소됩니다.
+          signal: undefined,
+          cancelToken: undefined,
+        };
+
+        return axiosApiInstance.request(retryRequestConfig);
+      } catch {
+        clearAuthSession();
+        return Promise.reject(new AuthRefreshError());
       }
     }
 
