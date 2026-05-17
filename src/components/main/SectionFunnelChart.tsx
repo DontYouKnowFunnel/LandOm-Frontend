@@ -130,7 +130,7 @@ const SectionFunnelChart = ({
       {isUnregisteredState && (
         <>
           <div className="absolute left-1 right-1 top-1 bottom-1 z-20 rounded-xl bg-white/55 backdrop-blur-[3px]" />
-          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center">
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
             <p className="whitespace-pre-line text-center text-base font-normal leading-6 text-slate-900">
               퍼널 정보가 등록되지 않았습니다.
               {"\n"}
