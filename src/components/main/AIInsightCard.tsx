@@ -1,14 +1,17 @@
 import { AXIcon } from "../Icons";
+import Skeleton from "../ui/Skeleton";
 
 interface AIInsightCardProps {
   section: string;
   conversionRate: string;
+  isLoading?: boolean;
   onClose?: () => void;
 }
 
 const AIInsightCard = ({
   section,
   conversionRate,
+  isLoading = false,
   onClose,
 }: AIInsightCardProps) => (
   <div className="relative h-full min-h-[280px] rounded-xl bg-slate-900 shadow-[0_0_16px_4px_rgba(0,0,0,0.25)] overflow-hidden">
@@ -45,12 +48,22 @@ const AIInsightCard = ({
           주요 개선 포인트
         </p>
         <p className="text-base font-normal leading-6 text-slate-300">
-          <span className="font-bold text-white">{section} 섹션</span>
-          <span>{"에서 사용자 이탈이 많이 발생합니다."}</span>
-          <br />
-          <span>{"AI 추천 개선안을 적용하면, 전환율이 "}</span>
-          <span className="font-bold text-blue-500">{conversionRate}</span>
-          <span>{" 향상될 것으로 예상됩니다."}</span>
+          {isLoading ? (
+            <div className="flex flex-col gap-1.5">
+              <Skeleton height={24} className="bg-slate-700" />
+              <Skeleton height={24} className="bg-slate-700" />
+              <Skeleton height={24} className="bg-slate-700" />
+            </div>
+          ) : (
+            <>
+              <span className="font-bold text-white">{section} 섹션</span>
+              <span>{"에서 사용자 이탈이 많이 발생합니다."}</span>
+              <br />
+              <span>{"AI 추천 개선안을 적용하면, 전환율이 "}</span>
+              <span className="font-bold text-blue-500">{conversionRate}</span>
+              <span>{" 향상될 것으로 예상됩니다."}</span>
+            </>
+          )}
         </p>
       </div>
 

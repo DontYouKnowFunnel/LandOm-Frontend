@@ -1,4 +1,5 @@
 import type { ComponentType, HTMLAttributes } from "react";
+import Skeleton from "../ui/Skeleton";
 
 interface MetricCardProps extends HTMLAttributes<HTMLDivElement> {
   icon: ComponentType<HTMLAttributes<HTMLSpanElement>>;
@@ -6,6 +7,7 @@ interface MetricCardProps extends HTMLAttributes<HTMLDivElement> {
   iconRotate?: number;
   label: string;
   value: string;
+  isLoading?: boolean;
   valueClassName?: string;
 }
 
@@ -15,6 +17,7 @@ const MetricCard = ({
   iconRotate = 0,
   label,
   value,
+  isLoading = false,
   valueClassName = "text-slate-900",
   className = "",
   ...props
@@ -28,11 +31,17 @@ const MetricCard = ({
       className={`absolute -bottom-3 left-3 text-[64px] z-0 ${iconClassName}`}
       style={{ transform: `rotate(-${iconRotate}deg)` }}
     />
-    <span
-      className={`relative z-10 text-2xl font-bold text-slate-900 leading-none self-end ${valueClassName}`}
-    >
-      {value}
-    </span>
+    <div className="relative z-10 w-28 self-end text-right">
+      {isLoading ? (
+        <Skeleton height={32} />
+      ) : (
+        <span
+          className={`inline-block w-full text-2xl font-bold text-slate-900 leading-none ${valueClassName}`}
+        >
+          {value}
+        </span>
+      )}
+    </div>
   </div>
 );
 
