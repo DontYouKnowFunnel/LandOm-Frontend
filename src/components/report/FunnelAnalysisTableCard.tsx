@@ -1,5 +1,5 @@
 import { getFunnelLabel } from "../../models/funnel";
-import type { FunnelStage } from "../../models/funnel";
+import type { FunnelStage, FunnelType } from "../../models/funnel";
 import Skeleton from "../ui/Skeleton";
 
 const DEFAULT_TABLE_HEADERS = [
