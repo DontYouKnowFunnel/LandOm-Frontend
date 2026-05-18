@@ -1,6 +1,10 @@
 import { Component, type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { AuthRefreshError } from "../../services/api";
+import {
+  AuthRefreshError,
+  getCurrentRedirectPath,
+  getLoginPathWithRedirect,
+} from "../../services/api";
 
 type RouteErrorBoundaryProps = {
   children: ReactNode;
@@ -31,7 +35,12 @@ class RouteErrorBoundary extends Component<
 
   render() {
     if (this.state.isAuthError) {
-      return <Navigate to="/login" replace />;
+      return (
+        <Navigate
+          to={getLoginPathWithRedirect(getCurrentRedirectPath())}
+          replace
+        />
+      );
     }
 
     if (this.state.hasError) {
