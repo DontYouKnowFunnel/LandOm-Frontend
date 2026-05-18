@@ -11,6 +11,7 @@ const axiosApiInstance = axios.create({
 });
 
 const AUTH_REFRESH_FAILED = "AUTH_REFRESH_FAILED";
+const AUTH_ROUTES = ["/login", "/signup"];
 
 export class AuthRefreshError extends Error {
   readonly isAuthRefreshError = true;
@@ -24,6 +25,45 @@ export class AuthRefreshError extends Error {
 const clearAuthSession = () => {
   sessionStorage.removeItem("accessToken");
   sessionStorage.removeItem("refreshToken");
+};
+
+export const getCurrentRedirectPath = () => {
+  if (typeof window === "undefined") return "/";
+
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+};
+
+export const getLoginPathWithRedirect = (redirectPath: string) => {
+  const isAuthRoute = AUTH_ROUTES.some((path) => redirectPath.startsWith(path));
+  if (!redirectPath || isAuthRoute) return "/login";
+
+  return `/login?redirect=${encodeURIComponent(redirectPath)}`;
+};
+
+export const getSafeRedirectPath = (redirect?: string | null) => {
+  if (!redirect) return "/";
+
+  try {
+    const redirectUrl = new URL(redirect, window.location.origin);
+    const redirectPath = `${redirectUrl.pathname}${redirectUrl.search}${redirectUrl.hash}`;
+    const isInternalUrl = redirectUrl.origin === window.location.origin;
+    const isAuthRoute = AUTH_ROUTES.some((path) => redirectPath.startsWith(path));
+
+    if (!isInternalUrl || isAuthRoute) return "/";
+
+    return redirectPath;
+  } catch {
+    return "/";
+  }
+};
+
+let isRedirectingToLogin = false;
+
+const redirectToLogin = () => {
+  if (typeof window === "undefined" || isRedirectingToLogin) return;
+
+  isRedirectingToLogin = true;
+  window.location.replace(getLoginPathWithRedirect(getCurrentRedirectPath()));
 };
 
 let refreshPromise: Promise<string> | null = null;
@@ -67,7 +107,11 @@ axiosApiInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -86,6 +130,7 @@ axiosApiInstance.interceptors.response.use(
         return axiosApiInstance.request(retryRequestConfig);
       } catch {
         clearAuthSession();
+        redirectToLogin();
         return Promise.reject(new AuthRefreshError());
       }
     }

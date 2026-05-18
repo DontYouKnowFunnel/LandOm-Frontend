@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import brandRow from "../../assets/image/brandRow.svg";
 import { useLogin } from "../../api/generated";
+import { getSafeRedirectPath } from "../../services/api";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = getSafeRedirectPath(searchParams.get("redirect"));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -14,15 +17,15 @@ const Login = () => {
       onSuccess: (response) => {
         sessionStorage.setItem("accessToken", response.accessToken ?? "");
         sessionStorage.setItem("refreshToken", response.refreshToken ?? "");
-        navigate("/", { replace: true });
+        navigate(redirectPath, { replace: true });
       },
     },
   });
 
   useEffect(() => {
     const accessToken = sessionStorage.getItem("accessToken");
-    if (accessToken) navigate("/", { replace: true });
-  }, [navigate]);
+    if (accessToken) navigate(redirectPath, { replace: true });
+  }, [navigate, redirectPath]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

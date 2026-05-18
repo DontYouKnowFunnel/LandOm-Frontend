@@ -2,6 +2,8 @@ import { ResponsiveLine } from "@nivo/line";
 import { linearGradientDef } from "@nivo/core";
 import { FunnelType, getFunnelLabel } from "../../models/funnel";
 import type { FunnelStage } from "../../models/funnel";
+import type { FunnelAnalysisTableRow } from "./FunnelAnalysisTableCard";
+import Skeleton from "../ui/Skeleton";
 
 const STAY_SECONDS_BY_FUNNEL_TYPE: Record<FunnelType, number> = {
   [FunnelType.HERO]: 48,
@@ -19,6 +21,9 @@ const STAY_SECONDS_BY_FUNNEL_TYPE: Record<FunnelType, number> = {
 
 interface FunnelStageTrendPanelProps {
   stages: FunnelStage[];
+  rows?: FunnelAnalysisTableRow[];
+  isLoading?: boolean;
+  showEmptyState?: boolean;
 }
 
 interface FunnelRateEntry {
@@ -98,29 +103,81 @@ const FunnelLineChart = ({
   );
 };
 
-const FunnelStageTrendPanel = ({ stages }: FunnelStageTrendPanelProps) => {
+const parseStayTimeToSeconds = (stayTime: string): number => {
+  const [mm, ss] = stayTime.split(":");
+  const minutes = Number(mm);
+  const seconds = Number(ss);
+  if (Number.isNaN(minutes) || Number.isNaN(seconds)) return 0;
+  return minutes * 60 + seconds;
+};
+
+const FunnelStageTrendPanel = ({
+  stages,
+  rows,
+  isLoading = false,
+  showEmptyState = false,
+}: FunnelStageTrendPanelProps) => {
+  if (showEmptyState) {
+    return (
+      <div className="flex gap-4 items-start w-full">
+        <div className="relative flex-1 min-w-0 h-64 rounded-[14px] border border-slate-200 bg-white p-5 overflow-hidden">
+          <p className="text-sm font-medium text-slate-600">이탈율 분석</p>
+          <div className="h-[calc(100%-20px)] flex items-center justify-center">
+            <p className="text-xs font-medium text-slate-500">
+              퍼널 분석 결과가 없습니다.
+            </p>
+          </div>
+        </div>
+        <div className="relative flex-1 min-w-0 h-64 rounded-[14px] border border-slate-200 bg-white p-5 overflow-hidden">
+          <p className="text-sm font-medium text-slate-600">체류 시간 분석</p>
+          <div className="h-[calc(100%-20px)] flex items-center justify-center">
+            <p className="text-xs font-medium text-slate-500">
+              퍼널 분석 결과가 없습니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const sortedStages = [...stages].sort((a, b) => a.id - b.id);
+  const sortedRows = [...(rows ?? [])].sort((a, b) => a.id - b.id);
 
-  const dropoutRateEntries: FunnelRateEntry[] = sortedStages.map(
-    (currentStage, index) => {
-      const nextStage = sortedStages[index + 1];
-      const dropoutRate = nextStage
-        ? Math.max(0, Math.round((currentStage.ratio - nextStage.ratio) * 100))
-        : 0;
+  const dropoutRateEntries: FunnelRateEntry[] =
+    sortedRows.length > 0
+      ? sortedRows.map((row) => ({
+          stageId: row.id,
+          funnelType: row.funnelType,
+          value: row.dropoutRate,
+        }))
+      : sortedStages.map((currentStage, index) => {
+          const nextStage = sortedStages[index + 1];
+          const dropoutRate = nextStage
+            ? Math.max(
+                0,
+                Math.round((currentStage.ratio - nextStage.ratio) * 100)
+              )
+            : 0;
 
-      return {
-        stageId: currentStage.id,
-        funnelType: currentStage.funnelType,
-        value: dropoutRate,
-      };
-    }
-  );
+          return {
+            stageId: currentStage.id,
+            funnelType: currentStage.funnelType,
+            value: dropoutRate,
+          };
+        });
 
-  const stayTimeEntries: FunnelRateEntry[] = sortedStages.map((stage) => ({
-    stageId: stage.id,
-    funnelType: stage.funnelType,
-    value: STAY_SECONDS_BY_FUNNEL_TYPE[stage.funnelType] ?? 0,
-  }));
+  const stayTimeEntries: FunnelRateEntry[] =
+    sortedRows.length > 0
+      ? sortedRows.map((row) => ({
+          stageId: row.id,
+          funnelType: row.funnelType,
+          value: parseStayTimeToSeconds(row.stayTime),
+        }))
+      : sortedStages.map((stage) => ({
+          stageId: stage.id,
+          funnelType: stage.funnelType,
+          value: STAY_SECONDS_BY_FUNNEL_TYPE[stage.funnelType] ?? 0,
+        }));
 
   const transitionDropoutEntries = dropoutRateEntries.slice(0, -1);
   const mostDropoutStage =
@@ -210,20 +267,28 @@ const FunnelStageTrendPanel = ({ stages }: FunnelStageTrendPanelProps) => {
               text="가장 이탈이 많은 퍼널"
               className="text-base leading-6 font-medium text-slate-500"
             />
-            <StrokedText
-              text={mostDropoutStageLabel}
-              className="text-base leading-6 font-semibold text-black"
-            />
+            {isLoading ? (
+              <Skeleton height={24} width={220} />
+            ) : (
+              <StrokedText
+                text={mostDropoutStageLabel}
+                className="text-base leading-6 font-semibold text-black"
+              />
+            )}
           </div>
           <div className="flex items-center gap-2.5">
             <StrokedText
               text="가장 이탈이 적은 퍼널"
               className="text-base leading-6 font-medium text-slate-500"
             />
-            <StrokedText
-              text={leastDropoutStageLabel}
-              className="text-base leading-6 font-semibold text-black"
-            />
+            {isLoading ? (
+              <Skeleton height={24} width={220} />
+            ) : (
+              <StrokedText
+                text={leastDropoutStageLabel}
+                className="text-base leading-6 font-semibold text-black"
+              />
+            )}
           </div>
         </div>
 
@@ -246,20 +311,28 @@ const FunnelStageTrendPanel = ({ stages }: FunnelStageTrendPanelProps) => {
               text="가장 체류 시간이 짧은 퍼널"
               className="text-base leading-6 font-medium text-slate-500"
             />
-            <StrokedText
-              text={shortestStayStageLabel}
-              className="text-base leading-6 font-semibold text-black"
-            />
+            {isLoading ? (
+              <Skeleton height={24} width={220} />
+            ) : (
+              <StrokedText
+                text={shortestStayStageLabel}
+                className="text-base leading-6 font-semibold text-black"
+              />
+            )}
           </div>
           <div className="flex items-center gap-2.5">
             <StrokedText
               text="가장 체류 시간이 긴 퍼널"
               className="text-base leading-6 font-medium text-slate-500"
             />
-            <StrokedText
-              text={longestStayStageLabel}
-              className="text-base leading-6 font-semibold text-black"
-            />
+            {isLoading ? (
+              <Skeleton height={24} width={220} />
+            ) : (
+              <StrokedText
+                text={longestStayStageLabel}
+                className="text-base leading-6 font-semibold text-black"
+              />
+            )}
           </div>
         </div>
 

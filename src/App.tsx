@@ -5,6 +5,7 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
+import type { ReactNode } from "react";
 import Sidebar from "./components/main/Sidebar";
 import RouteErrorBoundary from "./components/ui/RouteErrorBoundary";
 import Main from "./pages/main/Main";
@@ -14,6 +15,19 @@ import AI from "./pages/AI/AI";
 import ErrorPage from "./pages/error/ErrorPage";
 import Login from "./pages/login/Login";
 import SignUp from "./pages/signup/SignUp";
+import { getLoginPathWithRedirect } from "./services/api";
+
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const accessToken = sessionStorage.getItem("accessToken");
+  const redirectPath = `${location.pathname}${location.search}${location.hash}`;
+
+  if (!accessToken) {
+    return <Navigate to={getLoginPathWithRedirect(redirectPath)} replace />;
+  }
+
+  return <RouteErrorBoundary>{children}</RouteErrorBoundary>;
+}
 
 function AppLayout() {
   const { pathname } = useLocation();
@@ -21,7 +35,6 @@ function AppLayout() {
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
     pathname.startsWith("/error");
-  const accessToken = sessionStorage.getItem("accessToken");
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -34,37 +47,33 @@ function AppLayout() {
           <Route
             path="/"
             element={
-              accessToken ? (
-                <RouteErrorBoundary>
-                  <Main />
-                </RouteErrorBoundary>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              <ProtectedRoute>
+                <Main />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/report"
             element={
-              <RouteErrorBoundary>
+              <ProtectedRoute>
                 <Report />
-              </RouteErrorBoundary>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/session"
             element={
-              <RouteErrorBoundary>
+              <ProtectedRoute>
                 <Session />
-              </RouteErrorBoundary>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/ai"
             element={
-              <RouteErrorBoundary>
+              <ProtectedRoute>
                 <AI />
-              </RouteErrorBoundary>
+              </ProtectedRoute>
             }
           />
         </Routes>

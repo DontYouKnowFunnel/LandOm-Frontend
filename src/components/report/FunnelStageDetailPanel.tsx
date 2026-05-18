@@ -1,149 +1,74 @@
 import { Icon } from "@iconify/react";
-import { FunnelType, getFunnelLabel, funnelIconMap } from "../../models/funnel";
-import { AXIcon, PlayButtonIcon } from "../Icons";
+import { getFunnelLabel, funnelIconMap } from "../../models/funnel";
+import { AXIcon } from "../Icons";
 import type { FunnelStage } from "../../models/funnel";
-
-type SessionRow = {
-  id: string;
-  device: string;
-  stayTime: string;
-};
-
-type FunnelStageDetail = {
-  dropoutDelta: string;
-  stayTime: string;
-  stayDelta: string;
-  score: string;
-  sessions: SessionRow[];
-};
-
-const FUNNEL_STAGE_DETAIL_MAP: Record<FunnelType, FunnelStageDetail> = {
-  [FunnelType.HERO]: {
-    dropoutDelta: "-15%",
-    stayTime: "48s",
-    stayDelta: "+8s",
-    score: "78점",
-    sessions: [
-      { id: "S-10248", device: "Chrome · Windows", stayTime: "00:48" },
-      { id: "S-10241", device: "Safari · iOS", stayTime: "00:44" },
-      { id: "S-10235", device: "Edge · Windows", stayTime: "00:53" },
-    ],
-  },
-  [FunnelType.PROBLEM]: {
-    dropoutDelta: "+2%",
-    stayTime: "71s",
-    stayDelta: "+16s",
-    score: "61점",
-    sessions: [
-      { id: "S-21472", device: "Chrome · Android", stayTime: "01:11" },
-      { id: "S-21459", device: "Safari · iOS", stayTime: "01:04" },
-      { id: "S-21444", device: "Chrome · Mac", stayTime: "01:13" },
-    ],
-  },
-  [FunnelType.TARGET]: {
-    dropoutDelta: "-7%",
-    stayTime: "85s",
-    stayDelta: "+21s",
-    score: "69점",
-    sessions: [
-      { id: "S-31872", device: "Chrome · Android", stayTime: "01:25" },
-      { id: "S-31861", device: "Safari · iOS", stayTime: "01:12" },
-      { id: "S-31855", device: "Chrome · Windows", stayTime: "01:18" },
-    ],
-  },
-  [FunnelType.PRICING]: {
-    dropoutDelta: "+11%",
-    stayTime: "36s",
-    stayDelta: "-19s",
-    score: "44점",
-    sessions: [
-      { id: "S-19472", device: "Chrome · Android", stayTime: "02:58" },
-      { id: "S-19472", device: "Chrome · Android", stayTime: "02:58" },
-      { id: "S-19472", device: "Chrome · Android", stayTime: "02:58" },
-    ],
-  },
-  [FunnelType.CTA_SECTION]: {
-    dropoutDelta: "+9%",
-    stayTime: "57s",
-    stayDelta: "-4s",
-    score: "38점",
-    sessions: [
-      { id: "S-51921", device: "Chrome · Android", stayTime: "00:57" },
-      { id: "S-51904", device: "Safari · iOS", stayTime: "00:50" },
-      { id: "S-51888", device: "Chrome · Windows", stayTime: "00:55" },
-    ],
-  },
-  [FunnelType.USE_CASE]: {
-    dropoutDelta: "+0%",
-    stayTime: "--",
-    stayDelta: "--",
-    score: "--",
-    sessions: [],
-  },
-  [FunnelType.FEATURE]: {
-    dropoutDelta: "+0%",
-    stayTime: "--",
-    stayDelta: "--",
-    score: "--",
-    sessions: [],
-  },
-  [FunnelType.VALUE_PROP]: {
-    dropoutDelta: "+0%",
-    stayTime: "--",
-    stayDelta: "--",
-    score: "--",
-    sessions: [],
-  },
-  [FunnelType.TRUST]: {
-    dropoutDelta: "+0%",
-    stayTime: "--",
-    stayDelta: "--",
-    score: "--",
-    sessions: [],
-  },
-  [FunnelType.FAQ]: {
-    dropoutDelta: "+0%",
-    stayTime: "--",
-    stayDelta: "--",
-    score: "--",
-    sessions: [],
-  },
-  [FunnelType.GENERIC]: {
-    dropoutDelta: "+0%",
-    stayTime: "--",
-    stayDelta: "--",
-    score: "--",
-    sessions: [],
-  },
-};
+import Skeleton from "../ui/Skeleton";
 
 interface FunnelStageDetailPanelProps {
   stage: FunnelStage;
   stages: FunnelStage[];
+  isLoading?: boolean;
 }
+
+const toPercent = (ratio: number) => ratio * 100;
+
+const roundOneDecimal = (value: number) => Math.round(value * 10) / 10;
+
+const formatPercent = (value: number) => {
+  const rounded = roundOneDecimal(value);
+  return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
+};
+
+const formatSignedPercent = (value: number) => {
+  const rounded = roundOneDecimal(value);
+  if (rounded === 0) return "0%";
+  return `${rounded > 0 ? "+" : ""}${
+    Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)
+  }%`;
+};
+
+const getDropoutRates = (stages: FunnelStage[]) => {
+  return stages.map((currentStage, index) => {
+    const nextStage = stages[index + 1];
+    if (!nextStage) return 0;
+    return Math.max(0, toPercent(currentStage.ratio - nextStage.ratio));
+  });
+};
+
+const getFunnelScore = (averageDropoutDelta: number) => {
+  const score = Math.round(70 + averageDropoutDelta * 1.5);
+  return Math.min(100, Math.max(0, score));
+};
 
 const FunnelStageDetailPanel = ({
   stage,
   stages,
+  isLoading = false,
 }: FunnelStageDetailPanelProps) => {
-  const selectedStageDetail = FUNNEL_STAGE_DETAIL_MAP[stage.funnelType];
   const StageSectionIcon = funnelIconMap[stage.funnelType];
   const stageLabel = `${getFunnelLabel(stage.funnelType)} Section`;
   const reachedUsersText = `${stage.reachedSection.toLocaleString()}명`;
-  const reachRateText = `${Math.round(stage.ratio * 100)}%`;
+  const reachRateText = formatPercent(toPercent(stage.ratio));
   const sortedStages = [...stages].sort((a, b) => a.id - b.id);
   const currentStageIndex = sortedStages.findIndex(
     (currentStage) => currentStage.id === stage.id
   );
-  const nextStage =
-    currentStageIndex >= 0 ? sortedStages[currentStageIndex + 1] : undefined;
-  const dropoutRate = nextStage
-    ? Math.max(0, Math.round((stage.ratio - nextStage.ratio) * 100))
-    : 0;
-  const dropoutRateText = `${dropoutRate}%`;
+  const dropoutRates = getDropoutRates(sortedStages);
+  const transitionDropoutRates = dropoutRates.slice(0, -1);
+  const averageDropoutRate =
+    transitionDropoutRates.length > 0
+      ? transitionDropoutRates.reduce((sum, rate) => sum + rate, 0) /
+        transitionDropoutRates.length
+      : 0;
+  const dropoutRate =
+    currentStageIndex >= 0 ? dropoutRates[currentStageIndex] ?? 0 : 0;
+  const averageDropoutDelta = averageDropoutRate - dropoutRate;
+  const dropoutRateText = formatPercent(dropoutRate);
+  const averageDropoutDeltaText = formatSignedPercent(averageDropoutDelta);
+  const funnelScoreText = `${getFunnelScore(averageDropoutDelta)}점`;
 
   return (
-    <div className="flex-[10] min-w-0 bg-slate-50 p-5 flex flex-col gap-5">
+    <div className="h-full w-full bg-slate-50 p-5 flex flex-col gap-5">
       <div className="space-y-4">
         <p className="text-sm font-medium text-slate-600">
           {`퍼널 #${stage.id}`}
@@ -161,39 +86,57 @@ const FunnelStageDetailPanel = ({
         <div className="space-y-2 text-sm leading-5">
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">도달 유저 수</p>
-            <p className="text-slate-900 font-semibold">{reachedUsersText}</p>
+            {isLoading ? (
+              <Skeleton height={20} width={80} />
+            ) : (
+              <p className="text-slate-900 font-semibold">{reachedUsersText}</p>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">퍼널 도달 비율</p>
-            <p className="text-slate-900 font-semibold">{reachRateText}</p>
+            {isLoading ? (
+              <Skeleton height={20} width={48} />
+            ) : (
+              <p className="text-slate-900 font-semibold">{reachRateText}</p>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">퍼널 이탈율</p>
-            <p className="text-slate-900 font-semibold">{dropoutRateText}</p>
+            {isLoading ? (
+              <Skeleton height={20} width={48} />
+            ) : (
+              <p className="text-slate-900 font-semibold">{dropoutRateText}</p>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">평균 이탈율 대비</p>
-            <p className="text-red-500 font-semibold">
-              {selectedStageDetail.dropoutDelta}
-            </p>
+            {isLoading ? (
+              <Skeleton height={20} width={48} />
+            ) : (
+              <p
+                className={`font-semibold ${
+                  averageDropoutDelta < 0 ? "text-red-500" : "text-blue-500"
+                }`}
+              >
+                {averageDropoutDeltaText}
+              </p>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">평균 퍼널 체류 시간</p>
-            <p className="text-slate-900 font-semibold">
-              {selectedStageDetail.stayTime}
-            </p>
+            <p className="text-slate-900 font-semibold">--</p>
           </div>
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">평균 체류 시간 대비</p>
-            <p className="text-blue-500 font-semibold">
-              {selectedStageDetail.stayDelta}
-            </p>
+            <p className="text-slate-900 font-semibold">--</p>
           </div>
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">퍼널 점수</p>
-            <p className="text-slate-900 font-semibold">
-              {selectedStageDetail.score}
-            </p>
+            {isLoading ? (
+              <Skeleton height={20} width={48} />
+            ) : (
+              <p className="text-slate-900 font-semibold">{funnelScoreText}</p>
+            )}
           </div>
         </div>
       </div>
@@ -207,27 +150,11 @@ const FunnelStageDetailPanel = ({
           <p className="flex-1 min-w-0">체류시간</p>
           <p className="w-8">재생</p>
         </div>
-        {selectedStageDetail.sessions.map((session, index) => (
-          <div
-            key={`${session.id}-${index}`}
-            className="h-[42px] rounded-lg border border-slate-100 bg-white px-2 py-1.5 flex items-center gap-1"
-          >
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-slate-900 leading-4">
-                {session.id}
-              </p>
-              <p className="text-[11px] leading-4 text-slate-500">
-                {session.device}
-              </p>
-            </div>
-            <p className="flex-1 min-w-0 text-xs font-medium text-slate-900">
-              {session.stayTime}
-            </p>
-            <button type="button" className="w-8 flex items-center">
-              <PlayButtonIcon className="text-2xl text-slate-500 hover:text-slate-700 transition-colors" />
-            </button>
-          </div>
-        ))}
+        <div className="h-[42px] rounded-lg border border-slate-100 bg-white px-2 py-1.5 flex items-center justify-center">
+          <p className="text-xs font-medium text-slate-500">
+            이탈한 세션 데이터가 없습니다.
+          </p>
+        </div>
       </div>
 
       <div className="mt-auto pt-4">
