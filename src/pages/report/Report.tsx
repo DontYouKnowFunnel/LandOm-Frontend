@@ -15,7 +15,7 @@ import FunnelStageTrendPanel from "../../components/report/FunnelStageTrendPanel
 import FunnelStageOverviewPanel from "../../components/report/FunnelStageOverviewPanel";
 import FunnelStageDetailPanel from "../../components/report/FunnelStageDetailPanel";
 import Skeleton from "../../components/ui/Skeleton";
-import { FunnelType } from "../../models/funnel";
+import { FunnelType, getFunnelTypeFromSectionName } from "../../models/funnel";
 import type { FunnelStage } from "../../models/funnel";
 import { getStoredProjectId } from "../../constants/project";
 
@@ -25,15 +25,16 @@ const getDropoutRatePercent = (stages: FunnelStage[], index: number) => {
   const currentStage = stages[index];
   const nextStage = stages[index + 1];
   if (!currentStage || !nextStage) return 0;
-  return roundOneDecimal(Math.max(0, (currentStage.ratio - nextStage.ratio) * 100));
+  return roundOneDecimal(
+    Math.max(0, (currentStage.ratio - nextStage.ratio) * 100)
+  );
 };
 
 const Report = () => {
   const selectedProjectId = getStoredProjectId();
   const queryClient = useQueryClient();
-  const [statusOverride, setStatusOverride] = useState<FunnelResponseStatus | null>(
-    null
-  );
+  const [statusOverride, setStatusOverride] =
+    useState<FunnelResponseStatus | null>(null);
   const { data: projectDetail, isLoading: isProjectDetailLoading } =
     useGetProjectDetail(selectedProjectId ?? 0, {
       query: {
@@ -86,7 +87,8 @@ const Report = () => {
   const apiStages: FunnelStage[] =
     funnelDataResponse?.funnelData?.map((stage, index) => ({
       id: index + 1,
-      funnelType: fallbackStages[index]?.funnelType ?? FunnelType.GENERIC,
+      funnelType: getFunnelTypeFromSectionName(stage.sectionName),
+      sectionName: stage.sectionName,
       reachedSection: stage.reachedUserCount ?? 0,
       ratio: stage.reachRate ?? 0,
     })) ?? [];
@@ -95,7 +97,12 @@ const Report = () => {
     { id: 2, funnelType: FunnelType.PROBLEM, reachedSection: 0, ratio: 0.73 },
     { id: 3, funnelType: FunnelType.TARGET, reachedSection: 0, ratio: 0.65 },
     { id: 4, funnelType: FunnelType.PRICING, reachedSection: 0, ratio: 0.51 },
-    { id: 5, funnelType: FunnelType.CTA_SECTION, reachedSection: 0, ratio: 0.25 },
+    {
+      id: 5,
+      funnelType: FunnelType.CTA_SECTION,
+      reachedSection: 0,
+      ratio: 0.25,
+    },
   ];
 
   const currentStatus = funnelDataResponse?.status ?? statusOverride;
@@ -120,10 +127,10 @@ const Report = () => {
     : fallbackStages.length;
   const analysisRows: FunnelAnalysisTableRow[] = isCompleted
     ? funnelDataResponse?.funnelData?.map((stage, index) => {
-        const fallback = fallbackStages[index];
         return {
           id: index + 1,
-          funnelType: fallback?.funnelType ?? FunnelType.GENERIC,
+          funnelType: getFunnelTypeFromSectionName(stage.sectionName),
+          sectionName: stage.sectionName,
           reachedUsers: stage.reachedUserCount ?? 0,
           reachRate: roundOneDecimal((stage.reachRate ?? 0) * 100),
           dropoutRate: getDropoutRatePercent(apiStages, index),
@@ -132,7 +139,8 @@ const Report = () => {
       }) ?? []
     : [];
   const selectedStageForDetail = selectedStage
-    ? funnelStages.find((stage) => stage.id === selectedStage.id) ?? selectedStage
+    ? funnelStages.find((stage) => stage.id === selectedStage.id) ??
+      selectedStage
     : null;
 
   const statusMessage = isInProgress
@@ -198,7 +206,7 @@ const Report = () => {
             {shouldShowStatusOverlay && (
               <>
                 <div className="absolute inset-0 z-20 backdrop-blur-[8px]" />
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center px-5">
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-5">
                   {isInProgress ? (
                     <div className="mb-[10px] h-12 w-12 animate-spin rounded-full border-4 border-slate-300 border-t-blue-500" />
                   ) : null}

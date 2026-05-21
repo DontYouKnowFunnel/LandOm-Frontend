@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { getFunnelLabel, funnelIconMap } from "../../models/funnel";
+import { getFunnelStageLabel, funnelIconMap } from "../../models/funnel";
 import type { FunnelStage } from "../../models/funnel";
 import { ChevronRightIcon } from "../Icons";
 import Skeleton from "../ui/Skeleton";
@@ -51,7 +51,7 @@ const FunnelStageOverviewPanel = ({
       </div>
       {visibleStages.map((stage) => {
         const StageSectionIcon = funnelIconMap[stage.funnelType];
-        const stageLabel = `${getFunnelLabel(stage.funnelType)} Section`;
+        const stageLabel = getFunnelStageLabel(stage);
 
         return (
           <button

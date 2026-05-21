@@ -1,4 +1,4 @@
-import { getFunnelLabel } from "../../models/funnel";
+import { getFunnelStageLabel } from "../../models/funnel";
 import type { FunnelStage, FunnelType } from "../../models/funnel";
 import Skeleton from "../ui/Skeleton";
 
@@ -13,6 +13,7 @@ const DEFAULT_TABLE_HEADERS = [
 export type FunnelAnalysisTableRow = {
   id: number;
   funnelType: FunnelType;
+  sectionName?: string;
   reachedUsers: number;
   reachRate: number;
   dropoutRate: number;
@@ -41,6 +42,7 @@ const FunnelAnalysisTableCard = ({
       ? stages.map((stage) => ({
           id: stage.id,
           funnelType: stage.funnelType,
+          sectionName: stage.sectionName,
           reachedUsers: stage.reachedSection,
           reachRate: Math.round(stage.ratio * 100),
           dropoutRate: Math.max(0, 100 - Math.round(stage.ratio * 100)),
@@ -77,7 +79,7 @@ const FunnelAnalysisTableCard = ({
               className="h-[42px] rounded-lg border border-slate-100 bg-white px-2 flex items-center gap-1"
             >
               <p className="flex-1 min-w-0 text-sm font-medium text-slate-900">
-                {getFunnelLabel(row.funnelType)} Section
+                {getFunnelStageLabel(row)}
               </p>
               <p className="flex-1 min-w-0 text-sm font-medium text-slate-900">
                 {isLoading ? (

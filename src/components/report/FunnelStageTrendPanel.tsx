@@ -1,6 +1,6 @@
 import { ResponsiveLine } from "@nivo/line";
 import { linearGradientDef } from "@nivo/core";
-import { FunnelType, getFunnelLabel } from "../../models/funnel";
+import { FunnelType, getFunnelStageLabel } from "../../models/funnel";
 import type { FunnelStage } from "../../models/funnel";
 import type { FunnelAnalysisTableRow } from "./FunnelAnalysisTableCard";
 import Skeleton from "../ui/Skeleton";
@@ -29,6 +29,7 @@ interface FunnelStageTrendPanelProps {
 interface FunnelRateEntry {
   stageId: number;
   funnelType: FunnelType;
+  sectionName?: string;
   value: number;
 }
 
@@ -148,6 +149,7 @@ const FunnelStageTrendPanel = ({
       ? sortedRows.map((row) => ({
           stageId: row.id,
           funnelType: row.funnelType,
+          sectionName: row.sectionName,
           value: row.dropoutRate,
         }))
       : sortedStages.map((currentStage, index) => {
@@ -162,6 +164,7 @@ const FunnelStageTrendPanel = ({
           return {
             stageId: currentStage.id,
             funnelType: currentStage.funnelType,
+            sectionName: currentStage.sectionName,
             value: dropoutRate,
           };
         });
@@ -171,11 +174,13 @@ const FunnelStageTrendPanel = ({
       ? sortedRows.map((row) => ({
           stageId: row.id,
           funnelType: row.funnelType,
+          sectionName: row.sectionName,
           value: parseStayTimeToSeconds(row.stayTime),
         }))
       : sortedStages.map((stage) => ({
           stageId: stage.id,
           funnelType: stage.funnelType,
+          sectionName: stage.sectionName,
           value: STAY_SECONDS_BY_FUNNEL_TYPE[stage.funnelType] ?? 0,
         }));
 
@@ -236,24 +241,16 @@ const FunnelStageTrendPanel = ({
     ...stayTimeEntries.map((entry) => entry.value)
   );
   const mostDropoutStageLabel = mostDropoutStage
-    ? `#${mostDropoutStage.stageId} ${getFunnelLabel(
-        mostDropoutStage.funnelType
-      )} Section`
+    ? `#${mostDropoutStage.stageId} ${getFunnelStageLabel(mostDropoutStage)}`
     : "--";
   const leastDropoutStageLabel = leastDropoutStage
-    ? `#${leastDropoutStage.stageId} ${getFunnelLabel(
-        leastDropoutStage.funnelType
-      )} Section`
+    ? `#${leastDropoutStage.stageId} ${getFunnelStageLabel(leastDropoutStage)}`
     : "--";
   const shortestStayStageLabel = shortestStayStage
-    ? `#${shortestStayStage.stageId} ${getFunnelLabel(
-        shortestStayStage.funnelType
-      )} Section`
+    ? `#${shortestStayStage.stageId} ${getFunnelStageLabel(shortestStayStage)}`
     : "--";
   const longestStayStageLabel = longestStayStage
-    ? `#${longestStayStage.stageId} ${getFunnelLabel(
-        longestStayStage.funnelType
-      )} Section`
+    ? `#${longestStayStage.stageId} ${getFunnelStageLabel(longestStayStage)}`
     : "--";
 
   return (

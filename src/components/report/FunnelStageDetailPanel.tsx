@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/react";
-import { getFunnelLabel, funnelIconMap } from "../../models/funnel";
+import { getFunnelStageLabel, funnelIconMap } from "../../models/funnel";
 import { AXIcon } from "../Icons";
 import type { FunnelStage } from "../../models/funnel";
 import Skeleton from "../ui/Skeleton";
@@ -46,7 +46,7 @@ const FunnelStageDetailPanel = ({
   isLoading = false,
 }: FunnelStageDetailPanelProps) => {
   const StageSectionIcon = funnelIconMap[stage.funnelType];
-  const stageLabel = `${getFunnelLabel(stage.funnelType)} Section`;
+  const stageLabel = getFunnelStageLabel(stage);
   const reachedUsersText = `${stage.reachedSection.toLocaleString()}명`;
   const reachRateText = formatPercent(toPercent(stage.ratio));
   const sortedStages = [...stages].sort((a, b) => a.id - b.id);
