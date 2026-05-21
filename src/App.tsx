@@ -5,17 +5,36 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
+import type { ReactNode } from "react";
 import Sidebar from "./components/main/Sidebar";
+import RouteErrorBoundary from "./components/ui/RouteErrorBoundary";
 import Main from "./pages/main/Main";
 import Report from "./pages/report/Report";
 import Session from "./pages/session/Session";
 import AI from "./pages/AI/AI";
+import ErrorPage from "./pages/error/ErrorPage";
 import Login from "./pages/login/Login";
+import SignUp from "./pages/signup/SignUp";
+import { getLoginPathWithRedirect } from "./services/api";
+
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const accessToken = sessionStorage.getItem("accessToken");
+  const redirectPath = `${location.pathname}${location.search}${location.hash}`;
+
+  if (!accessToken) {
+    return <Navigate to={getLoginPathWithRedirect(redirectPath)} replace />;
+  }
+
+  return <RouteErrorBoundary>{children}</RouteErrorBoundary>;
+}
 
 function AppLayout() {
   const { pathname } = useLocation();
-  const isLoginPage = pathname.startsWith("/login");
-  const accessToken = sessionStorage.getItem("accessToken");
+  const isLoginPage =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/error");
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -23,13 +42,40 @@ function AppLayout() {
       <main className="flex flex-1 bg-[#F8FAFC]">
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/error" element={<ErrorPage />} />
           <Route
             path="/"
-            element={accessToken ? <Main /> : <Navigate to="/login" replace />}
+            element={
+              <ProtectedRoute>
+                <Main />
+              </ProtectedRoute>
+            }
           />
-          <Route path="/report" element={<Report />} />
-          <Route path="/session" element={<Session />} />
-          <Route path="/ai" element={<AI />} />
+          <Route
+            path="/report"
+            element={
+              <ProtectedRoute>
+                <Report />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/session"
+            element={
+              <ProtectedRoute>
+                <Session />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai"
+            element={
+              <ProtectedRoute>
+                <AI />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
     </div>

@@ -1,20 +1,31 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import brandRow from "../../assets/image/brandRow.svg";
-import { login } from "../../services/auth";
+import { useLogin } from "../../api/generated";
+import { getSafeRedirectPath } from "../../services/api";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = getSafeRedirectPath(searchParams.get("redirect"));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const loginMutation = useLogin({
+    mutation: {
+      onSuccess: (response) => {
+        sessionStorage.setItem("accessToken", response.accessToken ?? "");
+        sessionStorage.setItem("refreshToken", response.refreshToken ?? "");
+        navigate(redirectPath, { replace: true });
+      },
+    },
+  });
 
   useEffect(() => {
     const accessToken = sessionStorage.getItem("accessToken");
-    if (accessToken) navigate("/", { replace: true });
-  }, [navigate]);
+    if (accessToken) navigate(redirectPath, { replace: true });
+  }, [navigate, redirectPath]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,25 +37,13 @@ const Login = () => {
     }
 
     setErrorMessage("");
-    setIsLoading(true);
 
-    try {
-      const request = await login({ username: trimmedUsername, password });
-      const response = await request();
-
-      sessionStorage.setItem("accessToken", response.accessToken);
-      sessionStorage.setItem("refreshToken", response.refreshToken);
-
-      navigate("/", { replace: true });
-    } catch (error) {
-      if (axios.isAxiosError<{ message?: string }>(error)) {
-        setErrorMessage(error.response?.data?.message ?? "로그인에 실패했습니다.");
-      } else {
-        setErrorMessage("로그인에 실패했습니다.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    await loginMutation.mutateAsync({
+      data: {
+        username: trimmedUsername,
+        password,
+      },
+    });
   };
 
   return (
@@ -73,20 +72,31 @@ const Login = () => {
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
             />
-            <span className="text-xs font-semibold text-slate-800 self-end">
+            <Link
+              to="/signup"
+              className="text-xs font-medium text-slate-800 self-end hover:text-blue-500 transition-colors"
+            >
               회원가입
-            </span>
+            </Link>
           </div>
-          {errorMessage && (
-            <span className="text-xs font-medium text-red-500">{errorMessage}</span>
+          {errorMessage != "" && (
+            <span className="text-xs font-medium text-red-500">
+              {errorMessage}
+            </span>
+          )}
+          {axios.isAxiosError(loginMutation.error) && (
+            <span className="text-xs font-medium text-red-500">
+              {loginMutation.error.response?.data?.message ??
+                "로그인에 실패했습니다."}
+            </span>
           )}
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={loginMutation.isPending}
             className="flex justify-center p-2 bg-blue-500 rounded-lg disabled:opacity-60"
           >
             <span className="text-sm font-semibold text-white text-center">
-              {isLoading ? "로그인 중..." : "로그인"}
+              {loginMutation.isPending ? "로그인 중..." : "로그인"}
             </span>
           </button>
         </form>
