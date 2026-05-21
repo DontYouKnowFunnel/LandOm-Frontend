@@ -154,7 +154,10 @@ const Sidebar = ({ ...props }: SidebarProps) => {
         projects={projects}
         isLoading={isProjectListLoading}
         selectedProjectId={resolvedSelectedProjectId}
-        onSelect={(projectId) => setStoredProjectId(projectId)}
+        onSelect={(projectId) => {
+          setStoredProjectId(projectId);
+          window.location.reload();
+        }}
         onOpenSettings={(project) => setSettingProject(project)}
         onCreateProject={() => setIsNewProjectModalOpen(true)}
       />

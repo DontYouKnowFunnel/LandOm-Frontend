@@ -44,6 +44,7 @@ const NewProjectModal = ({ open, onClose }: NewProjectModalProps) => {
         });
 
         handleClose();
+        window.location.assign("/");
       },
     },
   });
