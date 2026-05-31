@@ -24,7 +24,6 @@ const SignUp = () => {
         } else {
           setErrorMessage("회원가입에 실패했습니다.");
         }
-        setStep(1);
       },
       onSuccess: () => {
         setStep(3);
