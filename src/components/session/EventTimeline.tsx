@@ -2,68 +2,81 @@ import { useState } from "react";
 import { Icon } from "@iconify/react";
 import type { EventDetail } from "../../api/generated";
 
-const EVENT_CONFIG = {
-  start: {
-    icon: "lucide:play-circle",
-    color: "text-green-600",
-    bg: "bg-green-50",
-    border: "border-green-200",
-    label: "세션 시작",
-  },
-  scroll: {
-    icon: "lucide:arrow-down",
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    label: "스크롤",
-  },
-  click: {
-    icon: "lucide:mouse-pointer-click",
-    color: "text-violet-600",
-    bg: "bg-violet-50",
-    border: "border-violet-200",
-    label: "클릭",
-  },
-  input: {
-    icon: "lucide:keyboard",
-    color: "text-amber-600",
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    label: "입력",
-  },
-  ping: {
-    icon: "lucide:map-pin",
-    color: "text-indigo-600",
-    bg: "bg-indigo-50",
-    border: "border-indigo-200",
-    label: "섹션 진입",
-  },
-  visibility: {
-    icon: "lucide:eye",
-    color: "text-slate-500",
-    bg: "bg-slate-100",
-    border: "border-slate-200",
-    label: "탭 전환",
-  },
-  exit: {
-    icon: "lucide:log-out",
-    color: "text-red-600",
-    bg: "bg-red-50",
-    border: "border-red-200",
-    label: "이탈",
-  },
-} as const;
-
-type EventType = keyof typeof EVENT_CONFIG;
-
-const DEFAULT_CONFIG = EVENT_CONFIG.start;
-
 const formatRelativeTime = (timestamp: number, baseTimestamp: number) => {
   const diff = (timestamp - baseTimestamp) / 1000;
   if (diff < 60) return `+${diff.toFixed(1)}s`;
   const min = Math.floor(diff / 60);
   const sec = Math.floor(diff % 60);
   return `+${min}m ${sec}s`;
+};
+
+const getEventStyle = (type: string) => {
+  switch (type.toLowerCase()) {
+    case "start":
+      return {
+        icon: "lucide:play-circle",
+        color: "text-green-600",
+        bg: "bg-green-50",
+        border: "border-green-200",
+        label: "세션 시작",
+      };
+    case "scroll":
+      return {
+        icon: "lucide:arrow-down",
+        color: "text-blue-600",
+        bg: "bg-blue-50",
+        border: "border-blue-200",
+        label: "스크롤",
+      };
+    case "click":
+      return {
+        icon: "lucide:mouse-pointer-click",
+        color: "text-violet-600",
+        bg: "bg-violet-50",
+        border: "border-violet-200",
+        label: "클릭",
+      };
+    case "input":
+      return {
+        icon: "lucide:keyboard",
+        color: "text-amber-600",
+        bg: "bg-amber-50",
+        border: "border-amber-200",
+        label: "입력",
+      };
+    case "ping":
+      return {
+        icon: "lucide:map-pin",
+        color: "text-indigo-600",
+        bg: "bg-indigo-50",
+        border: "border-indigo-200",
+        label: "섹션 진입",
+      };
+    case "visibility":
+      return {
+        icon: "lucide:eye",
+        color: "text-slate-500",
+        bg: "bg-slate-100",
+        border: "border-slate-200",
+        label: "탭 전환",
+      };
+    case "exit":
+      return {
+        icon: "lucide:log-out",
+        color: "text-red-600",
+        bg: "bg-red-50",
+        border: "border-red-200",
+        label: "이탈",
+      };
+    default:
+      return {
+        icon: "lucide:play-circle",
+        color: "text-green-600",
+        bg: "bg-green-50",
+        border: "border-green-200",
+        label: "세션 시작",
+      };
+  }
 };
 
 const getEventDetail = (event: EventDetail): string => {
@@ -115,8 +128,7 @@ const EventTimeline = ({ events }: EventTimelineProps) => {
   return (
     <div className="flex flex-col">
       {visible.map((event, index) => {
-        const type = String(event.type ?? "").toLowerCase() as EventType;
-        const config = EVENT_CONFIG[type] ?? DEFAULT_CONFIG;
+        const style = getEventStyle(String(event.type ?? ""));
         const detail = getEventDetail(event);
         const relTime =
           event.timestamp != null
@@ -131,19 +143,21 @@ const EventTimeline = ({ events }: EventTimelineProps) => {
           >
             <div className="flex flex-col items-center shrink-0 w-7">
               <div
-                className={`flex items-center justify-center w-7 h-7 rounded-full border ${config.bg} ${config.border} shrink-0`}
+                className={`flex items-center justify-center w-7 h-7 rounded-full border ${style.bg} ${style.border} shrink-0`}
               >
-                <Icon icon={config.icon} className={`text-xs ${config.color}`} />
+                <Icon icon={style.icon} className={`text-xs ${style.color}`} />
               </div>
               {!isLast && (
                 <div className="w-px flex-1 min-h-3 bg-slate-200 my-0.5" />
               )}
             </div>
 
-            <div className={`flex flex-col min-w-0 ${isLast ? "pb-0" : "pb-3"}`}>
+            <div
+              className={`flex flex-col min-w-0 ${isLast ? "pb-0" : "pb-3"}`}
+            >
               <div className="flex items-center gap-2 mt-1">
-                <span className={`text-xs font-semibold ${config.color}`}>
-                  {config.label}
+                <span className={`text-xs font-semibold ${style.color}`}>
+                  {style.label}
                 </span>
                 {relTime && (
                   <span className="text-[11px] text-slate-400 font-mono">
