@@ -6,7 +6,7 @@ import {
   DashboardIcon,
   FunnelIcon,
   SessionIcon,
-  AiIcon,
+  ImproveIcon,
 } from "../Icons";
 import brandLogo from "../../assets/image/brandLogo.svg";
 import brandRow from "../../assets/image/brandRow.svg";
@@ -32,10 +32,14 @@ const NAV_ITEMS = [
   },
   {
     icon: <SessionIcon className="w-4 h-4" />,
-    label: "사용자 세션",
+    label: "사용자 세션",
     path: "/session",
   },
-  { icon: <AiIcon className="w-4 h-4" />, label: "AI 개선안", path: "/ai" },
+  {
+    icon: <ImproveIcon className="w-4 h-4" />,
+    label: "랜딩 페이지 개선",
+    path: "/improve",
+  },
 ];
 
 const Sidebar = ({ ...props }: SidebarProps) => {
@@ -172,7 +176,9 @@ const Sidebar = ({ ...props }: SidebarProps) => {
             key={path}
             icon={icon}
             label={label}
-            isActive={pathname === path}
+            isActive={
+              path === "/" ? pathname === path : pathname.startsWith(path)
+            }
             isCollapsed={isCollapsed}
             onClick={() => navigate(path)}
           />

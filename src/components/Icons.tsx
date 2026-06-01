@@ -57,7 +57,7 @@ export const SessionIcon = ({
   );
 };
 
-export const AiIcon = ({
+export const ImproveIcon = ({
   className,
   ...props
 }: HTMLAttributes<HTMLSpanElement>) => {
@@ -66,11 +66,37 @@ export const AiIcon = ({
   );
 };
 
-export const AXIcon = ({
+export const ImproveBackgroundIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="glyphs:sparkles-bold"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const ImproveActionIcon = ({
   className,
   ...props
 }: HTMLAttributes<HTMLSpanElement>) => {
   return <Icon icon="ix:ai" className={className} {...(props as object)} />;
+};
+
+export const LoadingLoopIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="line-md:loading-loop"
+      className={className}
+      {...(props as object)}
+    />
+  );
 };
 
 export const SortIcon = ({
@@ -106,7 +132,9 @@ export const PlusIcon = ({
   className,
   ...props
 }: HTMLAttributes<HTMLSpanElement>) => {
-  return <Icon icon="lucide:plus" className={className} {...(props as object)} />;
+  return (
+    <Icon icon="lucide:plus" className={className} {...(props as object)} />
+  );
 };
 
 export const FolderXIcon = ({
@@ -324,6 +352,119 @@ export const ChevronDownIcon = ({
   return (
     <Icon
       icon="lucide:chevron-down"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const ArrowDropDownRoundedIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:arrow-drop-down-rounded"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const ChevronUpIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:chevron-up"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const RefreshIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:refresh-rounded"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const FileOutlineIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="mdi:file-outline"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const MegaphoneIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="mdi:megaphone" className={className} {...(props as object)} />
+  );
+};
+
+export const SelectIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:select"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const CheckIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="mingcute:check-fill"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const DragHorizontalIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="teenyicons:drag-horizontal-outline"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const CloseIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="material-symbols:close-rounded"
       className={className}
       {...(props as object)}
     />
