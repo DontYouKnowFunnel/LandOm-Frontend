@@ -37,7 +37,7 @@ function AppLayout() {
     pathname.startsWith("/error");
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50">
       {!isLoginPage && <Sidebar />}
       <main className="flex min-w-0 flex-1 overflow-hidden bg-[#F8FAFC]">
         <Routes>

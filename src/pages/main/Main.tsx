@@ -357,6 +357,7 @@ const DashboardContent = ({
             <SessionTable
               sessions={sessionRows}
               isLoading={isSessionTableLoading}
+              onPlay={(sessionId) => navigate(`/session?sessionId=${encodeURIComponent(sessionId)}`)}
             />
           </div>
           <div
