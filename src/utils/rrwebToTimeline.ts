@@ -45,9 +45,10 @@ export function rrwebEventsToTimeline(raw: unknown[]): EventDetail[] {
           timestamp: e.timestamp,
           payload: {
             yOffset: data.y,
-            percentage: typeof data.y === "number" && typeof (data as Record<string, unknown>).height === "number"
-              ? (data.y as number) / (data as Record<string, unknown>).height as number
-              : undefined,
+            percentage:
+              typeof data.y === "number" && typeof data.height === "number"
+                ? data.y / data.height
+                : undefined,
           },
         });
       } else if (source === IncrementalSource.MouseInteraction) {
@@ -69,11 +70,19 @@ export function rrwebEventsToTimeline(raw: unknown[]): EventDetail[] {
     } else if (e.type === RRWebType.Custom) {
       const tag = e.data.tag as string | undefined;
       const payload = e.data.payload as Record<string, unknown> | undefined;
+
       if (tag === "ping" || tag === "section") {
+        const sectionId =
+          typeof payload?.sectionId === "string"
+            ? payload.sectionId
+            : undefined;
+        const section =
+          typeof payload?.section === "string" ? payload.section : undefined;
+
         result.push({
           type: "ping",
           timestamp: e.timestamp,
-          payload: { sectionId: payload?.sectionId ?? payload?.section },
+          payload: { sectionId: sectionId ?? section },
         });
       }
     }
