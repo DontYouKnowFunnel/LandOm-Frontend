@@ -17,7 +17,7 @@ import SessionTable, {
 } from "../../components/main/SessionTable";
 import SectionAnalysisCard from "../../components/main/SectionAnalysisCard";
 import CompareAnalysisCard from "../../components/main/CompareAnalysisCard";
-import AIInsightCard from "../../components/main/AIInsightCard";
+import ImproveInsightCard from "../../components/main/ImproveInsightCard";
 import NewProjectModal from "../../components/main/NewProjectModal";
 import {
   getStoredProjectId,
@@ -365,7 +365,7 @@ const DashboardContent = ({
             }`}
           >
             <div className="h-full w-96">
-              <AIInsightCard
+              <ImproveInsightCard
                 section={insightSection}
                 conversionRate={insightImprovement}
                 isLoading={isFunnelChartLoading || isAnalysisLoading}
