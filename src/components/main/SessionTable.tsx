@@ -17,10 +17,9 @@ export interface SessionRow {
 interface SessionTableProps {
   sessions: SessionRow[];
   isLoading?: boolean;
-  onPlay?: (sessionId: string) => void;
 }
 
-const SessionTable = ({ sessions, isLoading = false, onPlay }: SessionTableProps) => (
+const SessionTable = ({ sessions, isLoading = false }: SessionTableProps) => (
   <div className="min-h-[280px] rounded-xl border border-slate-200 bg-white p-3.5">
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium leading-5 text-slate-600">최근 세션</span>
@@ -91,8 +90,11 @@ const SessionTable = ({ sessions, isLoading = false, onPlay }: SessionTableProps
             <div className="flex w-8 shrink-0 justify-center">
               <button
                 type="button"
-                disabled={isLoading}
-                onClick={() => onPlay?.(session.sessionId)}
+                disabled={isLoading || !session.replayUrl}
+                onClick={() => {
+                  if (!session.replayUrl) return;
+                  window.open(session.replayUrl, "_blank", "noopener,noreferrer");
+                }}
                 className="text-slate-600 transition-colors hover:text-slate-700 disabled:opacity-40"
               >
                 <PlayButtonIcon className="text-2xl" />
