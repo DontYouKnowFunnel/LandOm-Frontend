@@ -17,7 +17,7 @@ import SessionTable, {
 } from "../../components/main/SessionTable";
 import SectionAnalysisCard from "../../components/main/SectionAnalysisCard";
 import CompareAnalysisCard from "../../components/main/CompareAnalysisCard";
-import ImproveInsightCard from "../../components/main/ImproveInsightCard";
+import AIInsightCard from "../../components/main/AIInsightCard";
 import NewProjectModal from "../../components/main/NewProjectModal";
 import {
   getStoredProjectId,
@@ -357,6 +357,7 @@ const DashboardContent = ({
             <SessionTable
               sessions={sessionRows}
               isLoading={isSessionTableLoading}
+              onPlay={(sessionId) => navigate(`/session?sessionId=${encodeURIComponent(sessionId)}`)}
             />
           </div>
           <div
@@ -365,7 +366,7 @@ const DashboardContent = ({
             }`}
           >
             <div className="h-full w-96">
-              <ImproveInsightCard
+              <AIInsightCard
                 section={insightSection}
                 conversionRate={insightImprovement}
                 isLoading={isFunnelChartLoading || isAnalysisLoading}

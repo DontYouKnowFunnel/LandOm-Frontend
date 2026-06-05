@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 import { getFunnelStageLabel, funnelIconMap } from "../../models/funnel";
-import { ImproveActionIcon } from "../Icons";
+import { AXIcon } from "../Icons";
 import type { FunnelStage } from "../../models/funnel";
 import Skeleton from "../ui/Skeleton";
 
@@ -162,7 +162,7 @@ const FunnelStageDetailPanel = ({
           type="button"
           className="w-full h-10 rounded-lg bg-slate-900 text-white text-sm font-semibold flex items-center justify-center gap-1 relative overflow-hidden"
         >
-          <ImproveActionIcon className="text-base" />
+          <AXIcon className="text-base" />
           퍼널 개선하기
           <span
             className="absolute -right-7 -top-14 w-32 h-32 rounded-xl pointer-events-none"

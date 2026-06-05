@@ -11,7 +11,7 @@ import RouteErrorBoundary from "./components/ui/RouteErrorBoundary";
 import Main from "./pages/main/Main";
 import Report from "./pages/report/Report";
 import Session from "./pages/session/Session";
-import Improve from "./pages/improve/Improve";
+import AI from "./pages/AI/AI";
 import ErrorPage from "./pages/error/ErrorPage";
 import Login from "./pages/login/Login";
 import SignUp from "./pages/signup/SignUp";
@@ -39,7 +39,7 @@ function AppLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {!isLoginPage && <Sidebar />}
-      <main className="flex min-w-0 flex-1 overflow-hidden bg-[#F8FAFC]">
+      <main className="flex flex-1 min-w-0 overflow-hidden bg-[#F8FAFC]">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
@@ -69,10 +69,10 @@ function AppLayout() {
             }
           />
           <Route
-            path="/improve/*"
+            path="/ai"
             element={
               <ProtectedRoute>
-                <Improve />
+                <AI />
               </ProtectedRoute>
             }
           />

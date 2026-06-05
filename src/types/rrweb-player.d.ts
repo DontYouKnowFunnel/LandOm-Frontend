@@ -9,14 +9,7 @@ declare module "rrweb-player" {
     speedOption?: number[];
     speed?: number;
     showWarning?: boolean;
-    mouseTail?:
-      | boolean
-      | {
-          duration?: number;
-          lineCap?: string;
-          lineWidth?: number;
-          strokeStyle?: string;
-        };
+    mouseTail?: boolean | { duration?: number; lineCap?: string; lineWidth?: number; strokeStyle?: string };
   }
 
   interface RrwebPlayerInstance {

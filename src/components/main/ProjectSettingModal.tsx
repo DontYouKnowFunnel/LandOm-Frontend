@@ -96,7 +96,7 @@ const ProjectSettingModal = ({
     setErrorMessage("");
 
     await updateProjectMutation.mutateAsync({
-      projectId: project.id,
+      id: project.id,
       data: {
         name: trimmedProjectName,
         url: trimmedLandingPageUrl,
@@ -106,7 +106,7 @@ const ProjectSettingModal = ({
   };
 
   const handleDelete = async () => {
-    await deleteProjectMutation.mutateAsync({ projectId: project.id });
+    await deleteProjectMutation.mutateAsync({ id: project.id });
   };
 
   return (
