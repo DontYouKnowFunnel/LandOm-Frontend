@@ -9,17 +9,24 @@ declare module "rrweb-player" {
     speedOption?: number[];
     speed?: number;
     showWarning?: boolean;
-    mouseTail?: boolean | { duration?: number; lineCap?: string; lineWidth?: number; strokeStyle?: string };
+    mouseTail?:
+      | boolean
+      | {
+          duration?: number;
+          lineCap?: string;
+          lineWidth?: number;
+          strokeStyle?: string;
+        };
   }
 
-  interface RrwebPlayerInstance {
-    $destroy(): void;
-    addEventListener(event: string, handler: (e: CustomEvent) => void): void;
-    play(): void;
-    pause(): void;
-    goto(timeOffset: number): void;
-    playRange(timeOffset: number, endTimeOffset: number): void;
-  }
+  // interface RrwebPlayerInstance {
+  //   $destroy(): void;
+  //   addEventListener(event: string, handler: (e: CustomEvent) => void): void;
+  //   play(): void;
+  //   pause(): void;
+  //   goto(timeOffset: number): void;
+  //   playRange(timeOffset: number, endTimeOffset: number): void;
+  // }
 
   class RrwebPlayer {
     constructor(options: { target: Element; props: RrwebPlayerProps });

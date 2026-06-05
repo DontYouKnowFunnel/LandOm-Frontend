@@ -52,9 +52,9 @@ const SessionReplayPanel = ({
   const clickEvents = events.filter(
     (e) => String(e.type ?? "").toLowerCase() === "click"
   );
-  const pingEvents = events.filter(
-    (e) => String(e.type ?? "").toLowerCase() === "ping"
-  );
+  // const pingEvents = events.filter(
+  //   (e) => String(e.type ?? "").toLowerCase() === "ping"
+  // );
 
   return (
     <div className="flex flex-col gap-3 h-full overflow-y-auto">

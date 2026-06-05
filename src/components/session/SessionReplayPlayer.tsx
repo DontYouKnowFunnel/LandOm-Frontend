@@ -21,6 +21,7 @@ const SessionReplayPlayer = ({ events }: SessionReplayPlayerProps) => {
     observer.observe(wrapperRef.current);
     setWidth(Math.floor(wrapperRef.current.getBoundingClientRect().width));
     return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
