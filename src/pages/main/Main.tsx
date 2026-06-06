@@ -26,7 +26,7 @@ import {
 } from "../../constants/project";
 import {
   UserIcon,
-  MonitorIcon,
+  SignInIcon,
   RepeatIcon,
   ClockIcon,
 } from "../../components/Icons";
@@ -170,7 +170,7 @@ const DashboardContent = ({
 
   const visitorCount =
     funnelData?.totalSessions ?? funnelData?.funnelData?.[0]?.reachedUserCount;
-  const sessionCount = summaryData?.sessionCount;
+  const convertedCount = summaryData?.convertedCount;
   const conversionRate = summaryData?.conversionRate;
   const avgDuration = summaryData?.avgDuration;
 
@@ -292,6 +292,19 @@ const DashboardContent = ({
     1,
     Math.abs(conversionChange || 0)
   ).toFixed(1)}%`;
+  const handleOpenImproveInsight = () => {
+    const params = new URLSearchParams({ panel: "create" });
+
+    if (topDropSection?.sectionId != null) {
+      params.set("sectionId", String(topDropSection.sectionId));
+    }
+
+    if (topDropSection?.sectionName) {
+      params.set("sectionName", topDropSection.sectionName);
+    }
+
+    navigate(`/improve/webpage?${params.toString()}`);
+  };
 
   return (
     <div
@@ -320,11 +333,11 @@ const DashboardContent = ({
             isLoading={isVisitorLoading}
           />
           <MetricCard
-            icon={MonitorIcon}
+            icon={SignInIcon}
             iconRotate={5.31}
             iconClassName="text-slate-200"
-            label="세션 수"
-            value={formatNumber(sessionCount)}
+            label="전환 수"
+            value={formatNumber(convertedCount)}
             isLoading={isSessionLoading}
           />
           <MetricCard
@@ -371,6 +384,7 @@ const DashboardContent = ({
                 conversionRate={insightImprovement}
                 isLoading={isFunnelChartLoading || isAnalysisLoading}
                 onClose={() => setShowInsight(false)}
+                onOpenImprove={handleOpenImproveInsight}
               />
             </div>
           </div>
