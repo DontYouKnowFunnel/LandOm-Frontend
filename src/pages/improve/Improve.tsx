@@ -15,6 +15,7 @@ import {
   useGetFunnelAnalytics,
   useGetProjectCodegenResults,
   useGetProjectList,
+  useGetRecentSessions,
   useGetSectionSource,
   useGetSectionOptimizationPlan,
   useRequestCodegen,
@@ -24,8 +25,11 @@ import {
   type OptimizationPlanResponse,
   type OptimizationRecommendationResponse,
   type SectionSourceResponse,
+  type SessionDto,
 } from "../../api/generated";
 import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
   ArrowDropDownRoundedIcon,
   CheckIcon,
   ChevronDownIcon,
@@ -147,6 +151,8 @@ const formatCodegenDate = (generatedAt?: string) => {
     day: "2-digit",
   });
 };
+
+const APPLIED_VERSIONS_PAGE_SIZE = 3;
 
 const createMockSessions = (
   projectId: number,
@@ -433,6 +439,7 @@ const FunnelSelectPanel = ({
   onChangePersona,
   onGenerate,
   onOpenReview,
+  onPlaySession,
 }: {
   projectState: LandingProjectState;
   selectedFunnel: FunnelSection | null;
@@ -445,11 +452,69 @@ const FunnelSelectPanel = ({
   onChangePersona: (value: string) => void;
   onGenerate: () => void;
   onOpenReview: () => void;
+  onPlaySession: (sessionId: string) => void;
 }) => {
-  const sessions = selectedFunnel?.sessions.length
-    ? selectedFunnel.sessions
-    : projectState.funnels.find((funnel) => funnel.id === "pricing")
-        ?.sessions ?? [];
+  const { data: droppedSessionsData, isLoading: isDroppedSessionsLoading } =
+    useGetRecentSessions(
+      projectState.project.id,
+      {
+        sectionId: selectedFunnel?.sectionId,
+        status: "DROP",
+        limit: 3,
+      },
+      {
+        query: {
+          enabled: !!projectState.project.id && selectedFunnel?.sectionId != null,
+          staleTime: 60_000,
+          refetchOnWindowFocus: false,
+          retry: 1,
+        },
+      }
+    );
+  const droppedSessions = (droppedSessionsData?.sessions ?? []).slice(0, 3);
+
+  const formatSessionId = (sessionId?: string) => {
+    if (!sessionId) return "-";
+    if (sessionId.length <= 18) return sessionId;
+    return `${sessionId.slice(0, 15)}...`;
+  };
+
+  const renderDroppedSessionRow = (session: SessionDto, index: number) => {
+    const sessionId = session.sessionId ?? "";
+
+    return (
+      <div
+        key={`${sessionId}-${index}`}
+        className="flex items-center gap-1 rounded-lg border border-slate-100 bg-white px-2 py-1.5"
+      >
+        <div className="min-w-0 flex-1">
+          <p
+            className="mb-[-2px] truncate text-xs font-medium leading-4 text-slate-900"
+            title={sessionId || undefined}
+          >
+            {formatSessionId(sessionId)}
+          </p>
+          <p className="truncate text-[11px] font-normal leading-4 text-slate-500">
+            {session.device ?? "-"}
+          </p>
+        </div>
+        <div className="min-w-0 flex-1 text-xs font-medium leading-4 text-slate-900">
+          {session.duration ?? "-"}
+        </div>
+        <button
+          type="button"
+          disabled={!sessionId}
+          onClick={() => {
+            if (sessionId) onPlaySession(sessionId);
+          }}
+          className="flex w-8 shrink-0 items-center text-slate-600 transition-colors hover:text-slate-700 disabled:opacity-40"
+          aria-label="세션 리플레이 보기"
+        >
+          <PlayButtonIcon className="h-6 w-6" />
+        </button>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -549,39 +614,37 @@ const FunnelSelectPanel = ({
                   <span className="min-w-0 flex-1">체류시간</span>
                   <span className="w-8 shrink-0">재생</span>
                 </div>
-                {sessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="flex items-center gap-1 rounded-lg border border-slate-100 bg-white px-2 py-1.5"
-                  >
-                    <div className="min-w-0 flex-1">
-                      {isProjectLoading ? (
-                        <Skeleton height={16} />
-                      ) : (
-                        <p className="mb-[-2px] text-xs font-medium leading-4 text-slate-900">
-                          {session.id}
-                        </p>
-                      )}
-                      <p className="text-[11px] font-normal leading-4 text-slate-500">
-                        {session.device}
-                      </p>
-                    </div>
-                    <div className="min-w-0 flex-1 text-xs font-medium leading-4 text-slate-900">
-                      {isProjectLoading ? (
-                        <Skeleton height={16} width={40} />
-                      ) : (
-                        session.stayTime
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      className="flex w-8 shrink-0 items-center text-slate-600"
-                      aria-label={`${session.id} 세션 재생`}
-                    >
-                      <PlayButtonIcon className="h-6 w-6" />
-                    </button>
+                {isProjectLoading || isDroppedSessionsLoading ? (
+                  <div className="space-y-1.5">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-1 rounded-lg border border-slate-100 bg-white px-2 py-1.5"
+                      >
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <Skeleton height={14} />
+                          <Skeleton height={12} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <Skeleton height={14} />
+                        </div>
+                        <div className="w-8">
+                          <Skeleton height={24} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : droppedSessions.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {droppedSessions.map(renderDroppedSessionRow)}
+                  </div>
+                ) : (
+                  <div className="flex h-[146px] items-center justify-center rounded-lg border border-slate-100 bg-white px-2 py-1.5">
+                    <p className="text-xs font-medium text-slate-400">
+                      최근 세션 데이터가 없습니다.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -867,72 +930,130 @@ const AppliedVersionsPanel = ({
   currentVersionKey: string;
   isLoading: boolean;
   onSelectVersion: (version: AppliedCodegenVersion) => void;
-}) => (
-  <>
-    <p className="text-sm font-medium leading-5 text-slate-600">적용안 보기</p>
-    {isLoading && (
-      <div className="flex w-full flex-col gap-2 rounded-md bg-slate-100 p-3">
-        <Skeleton height={20} width={140} />
-        <Skeleton height={20} width={120} />
-        <Skeleton height={72} />
-      </div>
-    )}
-    {!isLoading && versions.length === 0 && (
-      <div className="rounded-md bg-slate-100 p-4 text-sm font-medium leading-5 text-slate-500">
-        아직 생성된 적용안 코드가 없습니다.
-      </div>
-    )}
-    {!isLoading &&
-      versions.map((version) => {
-        const isCurrent = version.key === currentVersionKey;
-        const appliedTitles = version.usedRecommendationTitles.length
-          ? version.usedRecommendationTitles
-          : ["적용된 개선안 정보가 없습니다."];
+}) => {
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageCount = Math.max(
+    1,
+    Math.ceil(versions.length / APPLIED_VERSIONS_PAGE_SIZE)
+  );
+  const pageStartIndex = currentPage * APPLIED_VERSIONS_PAGE_SIZE;
+  const pagedVersions = versions.slice(
+    pageStartIndex,
+    pageStartIndex + APPLIED_VERSIONS_PAGE_SIZE
+  );
+  const hasPagination = versions.length > APPLIED_VERSIONS_PAGE_SIZE;
 
-        return (
-          <div
-            key={version.key}
-            className={`relative flex w-full flex-col gap-2 overflow-hidden rounded-md p-3 ${
-              isCurrent
-                ? "border-[3px] border-blue-300 bg-blue-50"
-                : "bg-slate-100"
-            }`}
-          >
-            <p className="text-sm font-medium leading-5 text-slate-800">
-              적용안{" "}
-              <span className="font-bold">#{version.displayNumber}:</span>{" "}
-              {formatCodegenDate(version.generatedAt)}
-            </p>
-            <p className="text-sm font-medium leading-5 text-slate-600">
-              적용된 개선안{" "}
-              <span className="text-slate-400">
-                ({version.usedRecommendationTitles.length})
-              </span>
-            </p>
-            <ul className="list-disc space-y-2 pl-5 text-sm font-medium leading-5 text-slate-800">
-              {appliedTitles.map((title) => (
-                <li key={title}>{title}</li>
-              ))}
-            </ul>
-            <ImproveBackgroundIcon
-              className={`absolute right-2.5 top-2.5 h-16 w-16 ${
-                isCurrent ? "text-blue-300" : "text-slate-300"
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => onSelectVersion(version)}
-              className={`relative z-10 flex h-10 w-full items-center justify-center rounded-lg p-2.5 text-sm font-semibold leading-5 ${
-                isCurrent ? "bg-white text-slate-800" : "bg-blue-500 text-white"
+  useEffect(() => {
+    setCurrentPage((prevPage) => Math.min(prevPage, pageCount - 1));
+  }, [pageCount]);
+
+  useEffect(() => {
+    const currentVersionIndex = versions.findIndex(
+      (version) => version.key === currentVersionKey
+    );
+    if (currentVersionIndex < 0) return;
+
+    setCurrentPage(
+      Math.floor(currentVersionIndex / APPLIED_VERSIONS_PAGE_SIZE)
+    );
+  }, [currentVersionKey, versions]);
+
+  return (
+    <>
+      <p className="text-sm font-medium leading-5 text-slate-600">
+        적용안 보기
+      </p>
+      {isLoading && (
+        <div className="flex w-full flex-col gap-2 rounded-md bg-slate-100 p-3">
+          <Skeleton height={20} width={140} />
+          <Skeleton height={20} width={120} />
+          <Skeleton height={72} />
+        </div>
+      )}
+      {!isLoading && versions.length === 0 && (
+        <div className="rounded-md bg-slate-100 p-4 text-sm font-medium leading-5 text-slate-500">
+          아직 생성된 적용안 코드가 없습니다.
+        </div>
+      )}
+      {!isLoading &&
+        pagedVersions.map((version) => {
+          const isCurrent = version.key === currentVersionKey;
+          const appliedTitles = version.usedRecommendationTitles.length
+            ? version.usedRecommendationTitles
+            : ["적용된 개선안 정보가 없습니다."];
+
+          return (
+            <div
+              key={version.key}
+              className={`relative flex w-full flex-col gap-2 overflow-hidden rounded-md p-3 ${
+                isCurrent
+                  ? "border-[3px] border-blue-300 bg-blue-50"
+                  : "bg-slate-100"
               }`}
             >
-              {isCurrent ? "현재 보고 있는 적용안" : "이 적용안 보기"}
-            </button>
-          </div>
-        );
-      })}
-  </>
-);
+              <p className="text-sm font-medium leading-5 text-slate-800">
+                적용안{" "}
+                <span className="font-bold">#{version.displayNumber}:</span>{" "}
+                {formatCodegenDate(version.generatedAt)}
+              </p>
+              <p className="text-sm font-medium leading-5 text-slate-600">
+                적용된 개선안{" "}
+                <span className="text-slate-400">
+                  ({version.usedRecommendationTitles.length})
+                </span>
+              </p>
+              <ul className="list-disc space-y-2 pl-5 text-sm font-medium leading-5 text-slate-800">
+                {appliedTitles.map((title) => (
+                  <li key={title}>{title}</li>
+                ))}
+              </ul>
+              <ImproveBackgroundIcon
+                className={`absolute right-2.5 top-2.5 h-16 w-16 ${
+                  isCurrent ? "text-blue-300" : "text-slate-300"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => onSelectVersion(version)}
+                className={`relative z-10 flex h-10 w-full items-center justify-center rounded-lg p-2.5 text-sm font-semibold leading-5 ${
+                  isCurrent
+                    ? "bg-white text-slate-800"
+                    : "bg-blue-500 text-white"
+                }`}
+              >
+                {isCurrent ? "현재 보고 있는 적용안" : "이 적용안 보기"}
+              </button>
+            </div>
+          );
+        })}
+      {!isLoading && hasPagination && (
+        <div className="flex w-full items-center justify-between">
+          <button
+            type="button"
+            disabled={currentPage === 0}
+            onClick={() => setCurrentPage((prevPage) => prevPage - 1)}
+            className="flex h-6 w-6 items-center justify-center text-slate-900 transition-colors disabled:text-slate-300"
+            aria-label="이전 적용안 페이지"
+          >
+            <ArrowLeftIcon className="h-6 w-6" />
+          </button>
+          <p className="text-sm font-semibold leading-5 text-slate-800">
+            {currentPage + 1} / {pageCount}
+          </p>
+          <button
+            type="button"
+            disabled={currentPage >= pageCount - 1}
+            onClick={() => setCurrentPage((prevPage) => prevPage + 1)}
+            className="flex h-6 w-6 items-center justify-center text-slate-900 transition-colors disabled:text-slate-300"
+            aria-label="다음 적용안 페이지"
+          >
+            <ArrowRightIcon className="h-6 w-6" />
+          </button>
+        </div>
+      )}
+    </>
+  );
+};
 
 const ImprovementPanel = ({
   mode,
@@ -958,6 +1079,7 @@ const ImprovementPanel = ({
   onApply,
   onViewGeneratedCode,
   onSelectCodegenVersion,
+  onPlaySession,
 }: {
   mode: PanelMode;
   projectState: LandingProjectState;
@@ -982,6 +1104,7 @@ const ImprovementPanel = ({
   onApply: () => void;
   onViewGeneratedCode: () => void;
   onSelectCodegenVersion: (version: AppliedCodegenVersion) => void;
+  onPlaySession: (sessionId: string) => void;
 }) => {
   const selectedImprovements = projectState.improvements.filter((improvement) =>
     selectedImprovementIds.includes(improvement.id)
@@ -1002,6 +1125,7 @@ const ImprovementPanel = ({
           onChangePersona={onChangePersona}
           onGenerate={onGenerate}
           onOpenReview={onOpenReview}
+          onPlaySession={onPlaySession}
         />
       )}
 
@@ -1407,6 +1531,38 @@ const LandingImprovementContent = ({
     panelMode !== "generating";
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("panel") !== "create") return;
+
+    const targetSectionIdParam = params.get("sectionId");
+    const targetSectionId =
+      targetSectionIdParam == null ? null : Number(targetSectionIdParam);
+    const targetSectionName = params.get("sectionName")?.toLowerCase();
+    const targetFunnel = projectState.funnels.find((funnel) => {
+      if (
+        targetSectionId != null &&
+        Number.isFinite(targetSectionId) &&
+        funnel.sectionId === targetSectionId
+      ) {
+        return true;
+      }
+
+      return (
+        !!targetSectionName &&
+        funnel.sectionName?.toLowerCase() === targetSectionName
+      );
+    });
+
+    if (targetFunnel) {
+      setSelectedFunnelId(targetFunnel.id);
+    }
+
+    setIsPanelOpen(true);
+    setShowEntryTip(false);
+    setPanelMode("create");
+  }, [location.search, projectState.funnels]);
+
+  useEffect(() => {
     if (!isFreshRecommendationPlanReady) return;
     if (panelMode !== "generating") return;
 
@@ -1558,6 +1714,11 @@ const LandingImprovementContent = ({
     navigate("/improve/improvement");
   };
 
+  const handlePlaySession = (sessionId: string) => {
+    setIsPanelOpen(false);
+    navigate(`/session?sessionId=${encodeURIComponent(sessionId)}`);
+  };
+
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-white">
       <TopBar
@@ -1639,6 +1800,7 @@ const LandingImprovementContent = ({
             onApply={handleApply}
             onViewGeneratedCode={handleViewGeneratedCode}
             onSelectCodegenVersion={handleSelectCodegenVersion}
+            onPlaySession={handlePlaySession}
           />
         )}
       </div>
