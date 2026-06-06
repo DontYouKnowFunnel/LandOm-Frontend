@@ -6,6 +6,7 @@ interface ImproveInsightCardProps {
   conversionRate: string;
   isLoading?: boolean;
   onClose?: () => void;
+  onOpenImprove?: () => void;
 }
 
 const ImproveInsightCard = ({
@@ -13,6 +14,7 @@ const ImproveInsightCard = ({
   conversionRate,
   isLoading = false,
   onClose,
+  onOpenImprove,
 }: ImproveInsightCardProps) => (
   <div className="relative h-full min-h-[280px] rounded-xl bg-slate-900 shadow-[0_0_16px_4px_rgba(0,0,0,0.25)] overflow-hidden">
     <div className="pointer-events-none absolute -right-[23px] -top-[19px] h-32 w-32 rounded-xl bg-blue-600 opacity-30 blur-[32px]" />
@@ -68,7 +70,12 @@ const ImproveInsightCard = ({
       </div>
 
       <div>
-        <button className="h-11 w-full rounded bg-white px-4 py-3 text-sm font-bold leading-5 text-slate-900 transition-colors hover:bg-slate-100">
+        <button
+          type="button"
+          onClick={onOpenImprove}
+          disabled={isLoading}
+          className="h-11 w-full rounded bg-white px-4 py-3 text-sm font-bold leading-5 text-slate-900 transition-colors hover:bg-slate-100 disabled:opacity-60"
+        >
           랜딩 페이지 개선안 보기
         </button>
       </div>

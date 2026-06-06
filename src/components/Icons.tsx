@@ -308,6 +308,15 @@ export const MonitorIcon = ({
   );
 };
 
+export const SignInIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="si:sign-in-fill" className={className} {...(props as object)} />
+  );
+};
+
 export const ClockIcon = ({
   className,
   ...props
@@ -355,6 +364,32 @@ export const ChevronRightIcon = ({
   return (
     <Icon
       icon="lucide:chevron-right"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const ArrowLeftIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:arrow-left"
+      className={className}
+      {...(props as object)}
+    />
+  );
+};
+
+export const ArrowRightIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon
+      icon="lucide:arrow-right"
       className={className}
       {...(props as object)}
     />
@@ -426,6 +461,15 @@ export const FileOutlineIcon = ({
   );
 };
 
+export const CopyIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:copy" className={className} {...(props as object)} />
+  );
+};
+
 export const MegaphoneIcon = ({
   className,
   ...props
@@ -458,6 +502,15 @@ export const CheckIcon = ({
       className={className}
       {...(props as object)}
     />
+  );
+};
+
+export const CheckLineIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:check" className={className} {...(props as object)} />
   );
 };
 

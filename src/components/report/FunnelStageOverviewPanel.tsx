@@ -36,7 +36,7 @@ const FunnelStageOverviewPanel = ({
   };
 
   return (
-    <div className="h-full w-full bg-white">
+    <div className="min-h-full w-full bg-white">
       <div className="px-5 pt-5 pb-1.5">
         <div className="flex items-center gap-1 text-sm text-slate-600 font-semibold">
           <p>퍼널 그래프</p>

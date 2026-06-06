@@ -1,13 +1,48 @@
-import { useRef, useState } from "react";
-import { DragHorizontalIcon } from "../../components/Icons";
+import { useEffect, useRef, useState } from "react";
+import {
+  CheckLineIcon,
+  CopyIcon,
+  DragHorizontalIcon,
+} from "../../components/Icons";
 import FloatingImproveButton from "./components/FloatingImproveButton";
 import FloatingTooltip from "./components/FloatingTooltip";
 import HtmlCssPreviewFrame from "./components/HtmlCssPreviewFrame";
-import type { LandingProjectState } from "./types";
+import type { LandingPreviewCode, LandingProjectState } from "./types";
 
 const emptyPreviewCode = {
   html: "",
   css: "",
+};
+
+const formatPreviewCodeForCopy = (previewCode: LandingPreviewCode) => {
+  const html = previewCode.html.trim();
+  const css = previewCode.css.trim();
+
+  return `<!-- HTML -->
+${html}
+
+<!-- CSS -->
+<style>
+${css}
+</style>`;
+};
+
+const copyTextToClipboard = async (text: string) => {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  textarea.style.pointerEvents = "none";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textarea);
 };
 
 const ImprovementView = ({
@@ -28,8 +63,13 @@ const ImprovementView = ({
   showFloatingButton: boolean;
 }) => {
   const compareContainerRef = useRef<HTMLDivElement | null>(null);
+  const copyResetTimerRef = useRef<number | null>(null);
   const [comparePosition, setComparePosition] = useState(50);
   const [isDraggingCompare, setIsDraggingCompare] = useState(false);
+  const [isCopyComplete, setIsCopyComplete] = useState(false);
+  const hasGeneratedCode =
+    projectState.generatedCode.html.trim().length > 0 ||
+    projectState.generatedCode.css.trim().length > 0;
 
   const updateComparePosition = (clientX: number) => {
     const container = compareContainerRef.current;
@@ -39,6 +79,37 @@ const ImprovementView = ({
     const nextPosition = ((clientX - left) / width) * 100;
     setComparePosition(Math.min(Math.max(nextPosition, 0), 100));
   };
+
+  const handleCopyGeneratedCode = async () => {
+    if (!hasGeneratedCode) return;
+
+    try {
+      await copyTextToClipboard(
+        formatPreviewCodeForCopy(projectState.generatedCode)
+      );
+      setIsCopyComplete(true);
+
+      if (copyResetTimerRef.current) {
+        window.clearTimeout(copyResetTimerRef.current);
+      }
+
+      copyResetTimerRef.current = window.setTimeout(() => {
+        setIsCopyComplete(false);
+        copyResetTimerRef.current = null;
+      }, 1600);
+    } catch (error) {
+      console.error("Failed to copy generated landing page code.", error);
+    }
+  };
+
+  useEffect(
+    () => () => {
+      if (copyResetTimerRef.current) {
+        window.clearTimeout(copyResetTimerRef.current);
+      }
+    },
+    []
+  );
 
   return (
     <div className="relative flex min-h-0 flex-1 overflow-hidden bg-white">
@@ -126,6 +197,26 @@ const ImprovementView = ({
         </button>
         <div className="pointer-events-none min-h-0 flex-1 border-l-2 border-slate-200" />
       </div>
+
+      <button
+        type="button"
+        onClick={handleCopyGeneratedCode}
+        disabled={!hasGeneratedCode}
+        className="absolute bottom-8 left-1/2 z-50 flex h-10 w-[159px] -translate-x-1/2 items-center justify-center gap-2.5 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-base font-semibold leading-6 text-slate-800 shadow-[0px_4px_16px_rgba(0,0,0,0.25)] transition hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label={
+          isCopyComplete ? "개선안 코드 복사 완료" : "개선안 코드 복사"
+        }
+        aria-live="polite"
+      >
+        {isCopyComplete ? (
+          <CheckLineIcon className="h-4 w-4 text-green-500" />
+        ) : (
+          <CopyIcon className="h-4 w-4 text-slate-800" />
+        )}
+        <span className="whitespace-nowrap">
+          {isCopyComplete ? "복사 완료" : "개선안 코드 복사"}
+        </span>
+      </button>
 
       {showCompareTip && (
         <FloatingTooltip
