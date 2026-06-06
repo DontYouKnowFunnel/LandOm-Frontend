@@ -20,6 +20,11 @@ interface SessionTableProps {
   onPlay?: (sessionId: string) => void;
 }
 
+const formatSessionId = (sessionId: string) => {
+  if (sessionId.length <= 21) return sessionId;
+  return `${sessionId.slice(0, 18)}...`;
+};
+
 const SessionTable = ({ sessions, isLoading = false, onPlay }: SessionTableProps) => (
   <div className="min-h-[280px] rounded-xl border border-slate-200 bg-white p-3.5">
     <div className="flex flex-col gap-2">
@@ -58,7 +63,7 @@ const SessionTable = ({ sessions, isLoading = false, onPlay }: SessionTableProps
                 <span className="text-xs font-medium text-slate-900">{session.accessTime}</span>
               )}
             </div>
-            <div className="flex w-full flex-col justify-center -space-y-0.5">
+            <div className="flex min-w-0 w-full flex-col justify-center -space-y-0.5">
               {isLoading ? (
                 <>
                   <Skeleton height={16} />
@@ -66,8 +71,13 @@ const SessionTable = ({ sessions, isLoading = false, onPlay }: SessionTableProps
                 </>
               ) : (
                 <>
-                  <span className="text-xs font-medium text-slate-900">{session.sessionId}</span>
-                  <span className="text-[11px] font-normal leading-4 text-slate-500">{session.device}</span>
+                  <span
+                    className="block max-w-full truncate whitespace-nowrap text-xs font-medium text-slate-900"
+                    title={session.sessionId}
+                  >
+                    {formatSessionId(session.sessionId)}
+                  </span>
+                  <span className="block max-w-full truncate whitespace-nowrap text-[11px] font-normal leading-4 text-slate-500">{session.device}</span>
                 </>
               )}
             </div>
