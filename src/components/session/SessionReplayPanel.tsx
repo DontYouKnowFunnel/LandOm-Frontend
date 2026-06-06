@@ -52,13 +52,9 @@ const SessionReplayPanel = ({
   const clickEvents = events.filter(
     (e) => String(e.type ?? "").toLowerCase() === "click"
   );
-  // const pingEvents = events.filter(
-  //   (e) => String(e.type ?? "").toLowerCase() === "ping"
-  // );
 
   return (
     <div className="flex flex-col gap-3 h-full overflow-y-auto">
-      {/* Session header */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 shrink-0">
         <div className="flex items-start justify-between gap-2 mb-3">
           <span className="text-xs font-mono text-slate-700 break-all leading-5">
