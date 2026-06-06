@@ -1,13 +1,16 @@
 import { Icon } from "@iconify/react";
 import { getFunnelStageLabel, funnelIconMap } from "../../models/funnel";
-import { AXIcon } from "../Icons";
+import { ImproveActionIcon, PlayButtonIcon } from "../Icons";
 import type { FunnelStage } from "../../models/funnel";
 import Skeleton from "../ui/Skeleton";
+import { useGetRecentSessions, type SessionDto } from "../../api/generated";
 
 interface FunnelStageDetailPanelProps {
+  projectId: number;
   stage: FunnelStage;
   stages: FunnelStage[];
   isLoading?: boolean;
+  onPlaySession?: (sessionId: string) => void;
 }
 
 const toPercent = (ratio: number) => ratio * 100;
@@ -27,6 +30,38 @@ const formatSignedPercent = (value: number) => {
   }%`;
 };
 
+const parseDurationToSeconds = (duration?: string) => {
+  if (!duration) return null;
+
+  const colonParts = duration.split(":").map((part) => Number(part));
+  if (
+    colonParts.length >= 2 &&
+    colonParts.every((part) => Number.isFinite(part))
+  ) {
+    return colonParts.reduce((total, part) => total * 60 + part, 0);
+  }
+
+  const secondsMatch = duration.match(/-?\d+(?:\.\d+)?/);
+  if (!secondsMatch) return null;
+
+  const seconds = Number(secondsMatch[0]);
+  return Number.isFinite(seconds) ? seconds : null;
+};
+
+const formatSeconds = (seconds: number) => `${Math.round(seconds)}s`;
+
+const formatSignedSeconds = (seconds: number) => {
+  const rounded = Math.round(seconds);
+  if (rounded === 0) return "0s";
+  return `${rounded > 0 ? "+" : ""}${rounded}s`;
+};
+
+const formatSessionId = (sessionId?: string) => {
+  if (!sessionId) return "-";
+  if (sessionId.length <= 18) return sessionId;
+  return `${sessionId.slice(0, 15)}...`;
+};
+
 const getDropoutRates = (stages: FunnelStage[]) => {
   return stages.map((currentStage, index) => {
     const nextStage = stages[index + 1];
@@ -41,10 +76,29 @@ const getFunnelScore = (averageDropoutDelta: number) => {
 };
 
 const FunnelStageDetailPanel = ({
+  projectId,
   stage,
   stages,
   isLoading = false,
+  onPlaySession,
 }: FunnelStageDetailPanelProps) => {
+  const { data: droppedSessionsData, isLoading: isDroppedSessionsLoading } =
+    useGetRecentSessions(
+      projectId,
+      {
+        sectionId: stage.sectionId,
+        status: "DROP",
+        limit: 3,
+      },
+      {
+        query: {
+          enabled: !!projectId && stage.sectionId != null,
+          staleTime: 60_000,
+          refetchOnWindowFocus: false,
+          retry: 1,
+        },
+      }
+    );
   const StageSectionIcon = funnelIconMap[stage.funnelType];
   const stageLabel = getFunnelStageLabel(stage);
   const reachedUsersText = `${stage.reachedSection.toLocaleString()}명`;
@@ -66,6 +120,69 @@ const FunnelStageDetailPanel = ({
   const dropoutRateText = formatPercent(dropoutRate);
   const averageDropoutDeltaText = formatSignedPercent(averageDropoutDelta);
   const funnelScoreText = `${getFunnelScore(averageDropoutDelta)}점`;
+  const stageDurationSeconds = parseDurationToSeconds(stage.avgDuration);
+  const stageDurationText =
+    stageDurationSeconds == null ? "--" : formatSeconds(stageDurationSeconds);
+  const averageDurationSecondsList = stages
+    .map((currentStage) => parseDurationToSeconds(currentStage.avgDuration))
+    .filter((seconds): seconds is number => seconds != null);
+  const averageDurationSeconds =
+    averageDurationSecondsList.length > 0
+      ? averageDurationSecondsList.reduce((sum, seconds) => sum + seconds, 0) /
+        averageDurationSecondsList.length
+      : null;
+  const durationDeltaSeconds =
+    stageDurationSeconds == null || averageDurationSeconds == null
+      ? null
+      : stageDurationSeconds - averageDurationSeconds;
+  const durationDeltaText =
+    durationDeltaSeconds == null ? "--" : formatSignedSeconds(durationDeltaSeconds);
+  const durationDeltaClassName =
+    durationDeltaSeconds == null || Math.round(durationDeltaSeconds) === 0
+      ? "text-slate-900"
+      : durationDeltaSeconds > 0
+      ? "text-red-500"
+      : "text-blue-500";
+  const droppedSessions = droppedSessionsData?.sessions ?? [];
+
+  const renderDroppedSessionRow = (session: SessionDto, index: number) => {
+    const sessionId = session.sessionId ?? "";
+
+    return (
+      <div
+        key={`${sessionId}-${index}`}
+        className="flex items-center gap-1 rounded-lg border border-slate-100 bg-white px-2 py-1.5"
+      >
+        <div className="min-w-0 flex-1">
+          <p
+            className="truncate text-xs font-medium text-slate-900"
+            title={sessionId || undefined}
+          >
+            {formatSessionId(sessionId)}
+          </p>
+          <p className="truncate text-[11px] font-normal leading-4 text-slate-500">
+            {session.device ?? "-"}
+          </p>
+        </div>
+        <p className="min-w-0 flex-1 text-xs font-medium text-slate-900">
+          {session.duration ?? "-"}
+        </p>
+        <div className="flex w-8 shrink-0 justify-center">
+          <button
+            type="button"
+            disabled={!sessionId}
+            onClick={() => {
+              if (sessionId) onPlaySession?.(sessionId);
+            }}
+            className="text-slate-600 transition-colors hover:text-slate-700 disabled:opacity-40"
+            aria-label="세션 리플레이 보기"
+          >
+            <PlayButtonIcon className="text-2xl" />
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="h-full w-full bg-slate-50 p-5 flex flex-col gap-5">
@@ -124,11 +241,21 @@ const FunnelStageDetailPanel = ({
           </div>
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">평균 퍼널 체류 시간</p>
-            <p className="text-slate-900 font-semibold">--</p>
+            {isLoading ? (
+              <Skeleton height={20} width={48} />
+            ) : (
+              <p className="text-slate-900 font-semibold">{stageDurationText}</p>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">평균 체류 시간 대비</p>
-            <p className="text-slate-900 font-semibold">--</p>
+            {isLoading ? (
+              <Skeleton height={20} width={48} />
+            ) : (
+              <p className={`font-semibold ${durationDeltaClassName}`}>
+                {durationDeltaText}
+              </p>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <p className="text-slate-500 font-medium">퍼널 점수</p>
@@ -150,11 +277,37 @@ const FunnelStageDetailPanel = ({
           <p className="flex-1 min-w-0">체류시간</p>
           <p className="w-8">재생</p>
         </div>
-        <div className="h-[42px] rounded-lg border border-slate-100 bg-white px-2 py-1.5 flex items-center justify-center">
-          <p className="text-xs font-medium text-slate-500">
-            이탈한 세션 데이터가 없습니다.
-          </p>
-        </div>
+        {isDroppedSessionsLoading ? (
+          <div className="space-y-1.5">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-1 rounded-lg border border-slate-100 bg-white px-2 py-1.5"
+              >
+                <div className="min-w-0 flex-1 space-y-1">
+                  <Skeleton height={14} />
+                  <Skeleton height={12} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <Skeleton height={14} />
+                </div>
+                <div className="w-8">
+                  <Skeleton height={24} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : droppedSessions.length > 0 ? (
+          <div className="space-y-1.5">
+            {droppedSessions.map(renderDroppedSessionRow)}
+          </div>
+        ) : (
+          <div className="flex h-[146px] items-center justify-center rounded-lg border border-slate-100 bg-white px-2 py-1.5">
+            <p className="text-xs font-medium text-slate-400">
+              최근 세션 데이터가 없습니다.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mt-auto pt-4">
@@ -162,7 +315,7 @@ const FunnelStageDetailPanel = ({
           type="button"
           className="w-full h-10 rounded-lg bg-slate-900 text-white text-sm font-semibold flex items-center justify-center gap-1 relative overflow-hidden"
         >
-          <AXIcon className="text-base" />
+          <ImproveActionIcon className="text-base" />
           퍼널 개선하기
           <span
             className="absolute -right-7 -top-14 w-32 h-32 rounded-xl pointer-events-none"

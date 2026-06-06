@@ -29,10 +29,12 @@ export enum FunnelType {
 
 export type FunnelStage = {
   id: number;
+  sectionId?: number;
   funnelType: FunnelType;
   sectionName?: string;
   reachedSection: number;
   ratio: number;
+  avgDuration?: string;
 };
 
 export const funnelLabelMap: Record<FunnelType, string> = {

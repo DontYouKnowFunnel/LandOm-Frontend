@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import {
   crawlProjectLandingPage,
   FunnelResponseStatus,
@@ -7,7 +8,7 @@ import {
   useGetProjectDetail,
   useGetFunnelAnalytics,
 } from "../../api/generated";
-import { ChevronDownIcon, ChevronRightIcon } from "../../components/Icons";
+import { ChevronRightIcon } from "../../components/Icons";
 import FunnelAnalysisTableCard, {
   type FunnelAnalysisTableRow,
 } from "../../components/report/FunnelAnalysisTableCard";
@@ -32,6 +33,7 @@ const getDropoutRatePercent = (stages: FunnelStage[], index: number) => {
 
 const Report = () => {
   const selectedProjectId = getStoredProjectId();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [statusOverride, setStatusOverride] =
     useState<FunnelResponseStatus | null>(null);
@@ -87,10 +89,12 @@ const Report = () => {
   const apiStages: FunnelStage[] =
     funnelDataResponse?.funnelData?.map((stage, index) => ({
       id: index + 1,
+      sectionId: stage.sectionId,
       funnelType: getFunnelTypeFromSectionName(stage.sectionName),
       sectionName: stage.sectionName,
       reachedSection: stage.reachedUserCount ?? 0,
       ratio: stage.reachRate ?? 0,
+      avgDuration: stage.avgDuration,
     })) ?? [];
   const emptyStages: FunnelStage[] = [
     { id: 1, funnelType: FunnelType.HERO, reachedSection: 0, ratio: 1 },
@@ -169,7 +173,7 @@ const Report = () => {
 
   return (
     <div className="flex flex-1 flex-col p-5 gap-4 bg-slate-50 overflow-y-auto">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-start">
         <div className="flex items-center gap-1">
           {isProjectDetailLoading ? (
             <div className="w-52">
@@ -183,18 +187,11 @@ const Report = () => {
           <ChevronRightIcon className="text-slate-900 text-base" />
           <p className="text-base font-medium text-slate-500">퍼널 분석</p>
         </div>
-        <button
-          type="button"
-          className="h-9 bg-white border border-slate-200 rounded px-3 py-2 flex items-center gap-1.5 text-sm font-medium text-slate-500"
-        >
-          최근 30일
-          <ChevronDownIcon className="text-xl text-slate-600" />
-        </button>
       </div>
 
-      <div className="relative bg-white border border-slate-200 rounded-[14px] overflow-hidden flex min-h-[650px]">
-        <div className="flex w-full">
-          <div className="relative flex-[3_1_0] min-w-0 self-stretch border-r border-slate-200">
+      <div className="relative flex rounded-[14px] border border-slate-200 bg-white">
+        <div className="grid w-full overflow-hidden rounded-[14px] grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="relative min-w-0 border-r border-slate-200">
             <FunnelStageOverviewPanel
               stages={funnelStages}
               selectedStageId={selectedStage?.id ?? null}
@@ -227,12 +224,18 @@ const Report = () => {
               </>
             )}
           </div>
-          <div className="flex-[2_1_0] min-w-0 self-stretch">
+          <div className="min-w-0">
             {selectedStageForDetail ? (
               <FunnelStageDetailPanel
+                projectId={selectedProjectId ?? 0}
                 stage={selectedStageForDetail}
                 stages={funnelStages}
                 isLoading={isFunnelLoading}
+                onPlaySession={(sessionId) =>
+                  navigate(
+                    `/session?sessionId=${encodeURIComponent(sessionId)}`
+                  )
+                }
               />
             ) : (
               <div className="h-full w-full bg-slate-50 flex items-center justify-center">

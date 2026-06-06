@@ -10,22 +10,48 @@ const SessionReplayPlayer = ({ events }: SessionReplayPlayerProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<RrwebPlayer | null>(null);
-  const [width, setWidth] = useState(0);
+  const [size, setSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     if (!wrapperRef.current) return;
     const observer = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect.width;
-      if (w && Math.abs(w - width) > 2) setWidth(Math.floor(w));
+      const rect = entries[0]?.contentRect;
+      if (!rect) return;
+
+      setSize((previous) => {
+        const nextWidth = Math.floor(rect.width);
+        const nextHeight = Math.floor(rect.height);
+
+        if (
+          Math.abs(nextWidth - previous.width) <= 2 &&
+          Math.abs(nextHeight - previous.height) <= 2
+        ) {
+          return previous;
+        }
+
+        return { width: nextWidth, height: nextHeight };
+      });
     });
     observer.observe(wrapperRef.current);
-    setWidth(Math.floor(wrapperRef.current.getBoundingClientRect().width));
+    const rect = wrapperRef.current.getBoundingClientRect();
+    setSize({
+      width: Math.floor(rect.width),
+      height: Math.floor(rect.height),
+    });
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!containerRef.current || events.length === 0 || width === 0) return;
+    if (!containerRef.current || events.length === 0 || size.width === 0)
+      return;
+
+    const controllerHeight = 64;
+    const availableHeight =
+      size.height > controllerHeight ? size.height - controllerHeight : 0;
+    const playerHeight = Math.max(
+      240,
+      availableHeight || Math.round(size.width * 0.56)
+    );
 
     playerRef.current?.$destroy();
     playerRef.current = null;
@@ -35,12 +61,21 @@ const SessionReplayPlayer = ({ events }: SessionReplayPlayerProps) => {
       target: containerRef.current,
       props: {
         events,
-        width,
-        height: Math.round(width * 0.625),
+        width: size.width,
+        height: playerHeight,
         autoPlay: false,
         skipInactive: true,
+        speedOption: [1, 2, 4],
+        speed: 1,
+        inactiveColor: "#f1f5f9",
         showWarning: false,
-        mouseTail: true,
+
+        mouseTail: {
+          duration: 280,
+          lineCap: "round",
+          lineWidth: 4,
+          strokeStyle: "#3b82f6",
+        },
       },
     });
 
@@ -48,7 +83,7 @@ const SessionReplayPlayer = ({ events }: SessionReplayPlayerProps) => {
       playerRef.current?.$destroy();
       playerRef.current = null;
     };
-  }, [events, width]);
+  }, [events, size]);
 
   if (events.length === 0) {
     return (
@@ -59,8 +94,14 @@ const SessionReplayPlayer = ({ events }: SessionReplayPlayerProps) => {
   }
 
   return (
-    <div ref={wrapperRef} className="w-full">
-      <div ref={containerRef} className="rounded-lg overflow-hidden" />
+    <div
+      ref={wrapperRef}
+      className="landom-replay-player min-h-0 w-full flex-1"
+    >
+      <div
+        ref={containerRef}
+        className="h-full overflow-hidden rounded-lg border border-slate-100 bg-slate-50"
+      />
     </div>
   );
 };

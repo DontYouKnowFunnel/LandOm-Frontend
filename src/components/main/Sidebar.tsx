@@ -6,7 +6,7 @@ import {
   DashboardIcon,
   FunnelIcon,
   SessionIcon,
-  AiIcon,
+  ImproveIcon,
 } from "../Icons";
 import brandLogo from "../../assets/image/brandLogo.svg";
 import brandRow from "../../assets/image/brandRow.svg";
@@ -23,6 +23,8 @@ import ProjectSettingModal from "./ProjectSettingModal";
 
 type SidebarProps = HTMLAttributes<HTMLDivElement>;
 
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "sidebarCollapsed";
+
 const NAV_ITEMS = [
   { icon: <DashboardIcon className="w-4 h-4" />, label: "대시보드", path: "/" },
   {
@@ -32,16 +34,30 @@ const NAV_ITEMS = [
   },
   {
     icon: <SessionIcon className="w-4 h-4" />,
-    label: "사용자 세션",
+    label: "사용자 세션",
     path: "/session",
   },
-  { icon: <AiIcon className="w-4 h-4" />, label: "AI 개선안", path: "/ai" },
+  {
+    icon: <ImproveIcon className="w-4 h-4" />,
+    label: "랜딩 페이지 개선",
+    path: "/improve",
+  },
 ];
+
+const getStoredSidebarCollapsed = () =>
+  sessionStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "true";
+
+const setStoredSidebarCollapsed = (isCollapsed: boolean) => {
+  sessionStorage.setItem(
+    SIDEBAR_COLLAPSED_STORAGE_KEY,
+    String(isCollapsed)
+  );
+};
 
 const Sidebar = ({ ...props }: SidebarProps) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(getStoredSidebarCollapsed);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [settingProject, setSettingProject] = useState<ProjectItem | null>(
     null
@@ -143,7 +159,13 @@ const Sidebar = ({ ...props }: SidebarProps) => {
           className="flex h-6 w-6 shrink-0 items-center justify-center text-slate-500 transition-colors hover:text-slate-700"
           aria-label={isCollapsed ? "사이드바 펼치기" : "사이드바 접기"}
           aria-pressed={isCollapsed}
-          onClick={() => setIsCollapsed((prev) => !prev)}
+          onClick={() =>
+            setIsCollapsed((prev) => {
+              const nextIsCollapsed = !prev;
+              setStoredSidebarCollapsed(nextIsCollapsed);
+              return nextIsCollapsed;
+            })
+          }
         >
           <SidebarToggleIcon className="h-6 w-6" />
         </button>
@@ -172,7 +194,9 @@ const Sidebar = ({ ...props }: SidebarProps) => {
             key={path}
             icon={icon}
             label={label}
-            isActive={pathname === path}
+            isActive={
+              path === "/" ? pathname === path : pathname.startsWith(path)
+            }
             isCollapsed={isCollapsed}
             onClick={() => navigate(path)}
           />
