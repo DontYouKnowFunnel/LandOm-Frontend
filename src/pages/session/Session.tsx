@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   useGetProjectDetail,
@@ -137,7 +137,6 @@ const SKELETON_SESSIONS: SessionDto[] = Array.from({ length: 6 }, (_, i) => ({
 
 const Session = () => {
   const projectId = getStoredProjectId();
-  const [selectedSession, setSelectedSession] = useState<SessionDto | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: projectDetail, isLoading: isProjectDetailLoading } =
@@ -164,18 +163,22 @@ const Session = () => {
   );
 
   const isLoading = USE_MOCK ? false : apiLoading;
-  const allSessions = USE_MOCK ? MOCK_SESSIONS : (data?.sessions ?? []);
+  const allSessions = useMemo(
+    () => (USE_MOCK ? MOCK_SESSIONS : data?.sessions ?? []),
+    [data?.sessions]
+  );
   const projectName = projectDetail?.name ?? "프로젝트";
-
-  useEffect(() => {
-    const targetId = searchParams.get("sessionId");
-    if (!targetId || isLoading || allSessions.length === 0) return;
-    const found = allSessions.find((s) => s.sessionId === targetId);
-    if (found) setSelectedSession(found);
-  }, [searchParams, allSessions, isLoading]);
+  const selectedSessionId = searchParams.get("sessionId");
+  const selectedSession = useMemo(
+    () =>
+      selectedSessionId
+        ? allSessions.find((session) => session.sessionId === selectedSessionId) ??
+          null
+        : null,
+    [allSessions, selectedSessionId]
+  );
 
   const handleSelectSession = (session: SessionDto) => {
-    setSelectedSession(session);
     const nextSearchParams = new URLSearchParams(searchParams);
 
     if (session.sessionId) {

@@ -154,6 +154,38 @@ const formatCodegenDate = (generatedAt?: string) => {
 
 const APPLIED_VERSIONS_PAGE_SIZE = 3;
 
+const isCreatePanelRequest = (search: string) =>
+  new URLSearchParams(search).get("panel") === "create";
+
+const getCreatePanelTargetFunnelId = (
+  search: string,
+  funnels: FunnelSection[]
+) => {
+  const params = new URLSearchParams(search);
+  if (params.get("panel") !== "create") return null;
+
+  const targetSectionIdParam = params.get("sectionId");
+  const targetSectionId =
+    targetSectionIdParam == null ? null : Number(targetSectionIdParam);
+  const targetSectionName = params.get("sectionName")?.toLowerCase();
+  const targetFunnel = funnels.find((funnel) => {
+    if (
+      targetSectionId != null &&
+      Number.isFinite(targetSectionId) &&
+      funnel.sectionId === targetSectionId
+    ) {
+      return true;
+    }
+
+    return (
+      !!targetSectionName &&
+      funnel.sectionName?.toLowerCase() === targetSectionName
+    );
+  });
+
+  return targetFunnel?.id ?? null;
+};
+
 const createMockSessions = (
   projectId: number,
   index: number,
@@ -931,10 +963,23 @@ const AppliedVersionsPanel = ({
   isLoading: boolean;
   onSelectVersion: (version: AppliedCodegenVersion) => void;
 }) => {
-  const [currentPage, setCurrentPage] = useState(0);
+  const [requestedPage, setRequestedPage] = useState<number | null>(null);
   const pageCount = Math.max(
     1,
     Math.ceil(versions.length / APPLIED_VERSIONS_PAGE_SIZE)
+  );
+  const currentVersionPage = useMemo(() => {
+    const currentVersionIndex = versions.findIndex(
+      (version) => version.key === currentVersionKey
+    );
+
+    return currentVersionIndex < 0
+      ? 0
+      : Math.floor(currentVersionIndex / APPLIED_VERSIONS_PAGE_SIZE);
+  }, [currentVersionKey, versions]);
+  const currentPage = Math.min(
+    requestedPage ?? currentVersionPage,
+    pageCount - 1
   );
   const pageStartIndex = currentPage * APPLIED_VERSIONS_PAGE_SIZE;
   const pagedVersions = versions.slice(
@@ -942,21 +987,6 @@ const AppliedVersionsPanel = ({
     pageStartIndex + APPLIED_VERSIONS_PAGE_SIZE
   );
   const hasPagination = versions.length > APPLIED_VERSIONS_PAGE_SIZE;
-
-  useEffect(() => {
-    setCurrentPage((prevPage) => Math.min(prevPage, pageCount - 1));
-  }, [pageCount]);
-
-  useEffect(() => {
-    const currentVersionIndex = versions.findIndex(
-      (version) => version.key === currentVersionKey
-    );
-    if (currentVersionIndex < 0) return;
-
-    setCurrentPage(
-      Math.floor(currentVersionIndex / APPLIED_VERSIONS_PAGE_SIZE)
-    );
-  }, [currentVersionKey, versions]);
 
   return (
     <>
@@ -1014,7 +1044,10 @@ const AppliedVersionsPanel = ({
               />
               <button
                 type="button"
-                onClick={() => onSelectVersion(version)}
+                onClick={() => {
+                  setRequestedPage(null);
+                  onSelectVersion(version);
+                }}
                 className={`relative z-10 flex h-10 w-full items-center justify-center rounded-lg p-2.5 text-sm font-semibold leading-5 ${
                   isCurrent
                     ? "bg-white text-slate-800"
@@ -1031,7 +1064,7 @@ const AppliedVersionsPanel = ({
           <button
             type="button"
             disabled={currentPage === 0}
-            onClick={() => setCurrentPage((prevPage) => prevPage - 1)}
+            onClick={() => setRequestedPage(currentPage - 1)}
             className="flex h-6 w-6 items-center justify-center text-slate-900 transition-colors disabled:text-slate-300"
             aria-label="이전 적용안 페이지"
           >
@@ -1043,7 +1076,7 @@ const AppliedVersionsPanel = ({
           <button
             type="button"
             disabled={currentPage >= pageCount - 1}
-            onClick={() => setCurrentPage((prevPage) => prevPage + 1)}
+            onClick={() => setRequestedPage(currentPage + 1)}
             className="flex h-6 w-6 items-center justify-center text-slate-900 transition-colors disabled:text-slate-300"
             aria-label="다음 적용안 페이지"
           >
@@ -1246,14 +1279,19 @@ const LandingImprovementContent = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const hasInitialCreatePanelRequest = isCreatePanelRequest(location.search);
   const [selectedFunnelId, setSelectedFunnelId] = useState("");
   const [persona, setPersona] = useState("");
   const [panelMode, setPanelMode] = useState<PanelMode>("create");
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(
+    hasInitialCreatePanelRequest
+  );
   const [selectedImprovementIds, setSelectedImprovementIds] = useState<
     number[]
   >([]);
-  const [showEntryTip, setShowEntryTip] = useState(true);
+  const [showEntryTip, setShowEntryTip] = useState(
+    !hasInitialCreatePanelRequest
+  );
   const [showCompareTip, setShowCompareTip] = useState(true);
   const [currentCodegenVersionKey, setCurrentCodegenVersionKey] = useState("");
   const [comparisonSectionId, setComparisonSectionId] = useState(0);
@@ -1274,13 +1312,20 @@ const LandingImprovementContent = ({
     navigate(view === "webpage" ? "/improve/webpage" : "/improve/improvement");
   };
 
+  const requestedCreateFunnelId = useMemo(
+    () => getCreatePanelTargetFunnelId(location.search, projectState.funnels),
+    [location.search, projectState.funnels]
+  );
+  const selectedFunnelIdCandidate =
+    selectedFunnelId || requestedCreateFunnelId || "";
   const selectedFunnel = useMemo(
     () =>
-      projectState.funnels.find((funnel) => funnel.id === selectedFunnelId) ??
-      null,
-    [projectState.funnels, selectedFunnelId]
+      projectState.funnels.find(
+        (funnel) => funnel.id === selectedFunnelIdCandidate
+      ) ?? null,
+    [projectState.funnels, selectedFunnelIdCandidate]
   );
-  const effectiveSelectedFunnelId = selectedFunnel ? selectedFunnelId : "";
+  const effectiveSelectedFunnelId = selectedFunnel?.id ?? "";
   const selectedSectionId = selectedFunnel?.sectionId ?? 0;
   const optimizationPlanFunnels = useMemo(
     () =>
@@ -1330,9 +1375,9 @@ const LandingImprovementContent = ({
   const selectedPendingOptimizationPlan = useMemo(
     () =>
       pendingOptimizationPlans.find(
-        (pendingPlan) => pendingPlan.funnel.id === selectedFunnelId
+        (pendingPlan) => pendingPlan.funnel.id === effectiveSelectedFunnelId
       ) ?? null,
-    [pendingOptimizationPlans, selectedFunnelId]
+    [effectiveSelectedFunnelId, pendingOptimizationPlans]
   );
   const firstPendingOptimizationPlan = pendingOptimizationPlans[0] ?? null;
   const {
@@ -1529,38 +1574,6 @@ const LandingImprovementContent = ({
     persona.trim().length > 0 &&
     !requestSectionOptimizationMutation.isPending &&
     panelMode !== "generating";
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("panel") !== "create") return;
-
-    const targetSectionIdParam = params.get("sectionId");
-    const targetSectionId =
-      targetSectionIdParam == null ? null : Number(targetSectionIdParam);
-    const targetSectionName = params.get("sectionName")?.toLowerCase();
-    const targetFunnel = projectState.funnels.find((funnel) => {
-      if (
-        targetSectionId != null &&
-        Number.isFinite(targetSectionId) &&
-        funnel.sectionId === targetSectionId
-      ) {
-        return true;
-      }
-
-      return (
-        !!targetSectionName &&
-        funnel.sectionName?.toLowerCase() === targetSectionName
-      );
-    });
-
-    if (targetFunnel) {
-      setSelectedFunnelId(targetFunnel.id);
-    }
-
-    setIsPanelOpen(true);
-    setShowEntryTip(false);
-    setPanelMode("create");
-  }, [location.search, projectState.funnels]);
 
   useEffect(() => {
     if (!isFreshRecommendationPlanReady) return;
