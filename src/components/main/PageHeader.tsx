@@ -1,4 +1,4 @@
-import { ChevronRightIcon, ChevronDownIcon } from "../Icons";
+import { ChevronRightIcon } from "../Icons";
 import Skeleton from "../ui/Skeleton";
 
 interface PageHeaderProps {
@@ -8,7 +8,7 @@ interface PageHeaderProps {
 }
 
 const PageHeader = ({ projectName, url, isLoading = false }: PageHeaderProps) => (
-  <div className="flex items-center justify-between">
+  <div className="flex items-center justify-start">
     <div className="flex items-center gap-1.5">
       {isLoading ? (
         <div className="w-44">
@@ -35,11 +35,6 @@ const PageHeader = ({ projectName, url, isLoading = false }: PageHeaderProps) =>
         </a>
       )}
     </div>
-
-    <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-lg font-medium bg-white text-sm text-slate-500 hover:bg-slate-50">
-      <span>최근 30일</span>
-      <ChevronDownIcon className="text-slate-600 text-xl" />
-    </button>
   </div>
 );
 

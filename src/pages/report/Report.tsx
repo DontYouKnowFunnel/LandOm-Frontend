@@ -7,7 +7,7 @@ import {
   useGetProjectDetail,
   useGetFunnelAnalytics,
 } from "../../api/generated";
-import { ChevronDownIcon, ChevronRightIcon } from "../../components/Icons";
+import { ChevronRightIcon } from "../../components/Icons";
 import FunnelAnalysisTableCard, {
   type FunnelAnalysisTableRow,
 } from "../../components/report/FunnelAnalysisTableCard";
@@ -169,7 +169,7 @@ const Report = () => {
 
   return (
     <div className="flex flex-1 flex-col p-5 gap-4 bg-slate-50 overflow-y-auto">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-start">
         <div className="flex items-center gap-1">
           {isProjectDetailLoading ? (
             <div className="w-52">
@@ -183,13 +183,6 @@ const Report = () => {
           <ChevronRightIcon className="text-slate-900 text-base" />
           <p className="text-base font-medium text-slate-500">퍼널 분석</p>
         </div>
-        <button
-          type="button"
-          className="h-9 bg-white border border-slate-200 rounded px-3 py-2 flex items-center gap-1.5 text-sm font-medium text-slate-500"
-        >
-          최근 30일
-          <ChevronDownIcon className="text-xl text-slate-600" />
-        </button>
       </div>
 
       <div className="relative bg-white border border-slate-200 rounded-[14px] overflow-hidden flex min-h-[650px]">
