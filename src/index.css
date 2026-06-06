@@ -164,6 +164,14 @@
   left: 16px !important;
 }
 
+:where(button:not(:disabled):not(.cursor-default):not(.cursor-ew-resize)) {
+  cursor: pointer;
+}
+
+:where(button:disabled) {
+  cursor: not-allowed;
+}
+
 #root {
   font-family: "Pretendard Variable", Pretendard, -apple-system,
     BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI",
