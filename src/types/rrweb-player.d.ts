@@ -8,6 +8,7 @@ declare module "rrweb-player" {
     showController?: boolean;
     speedOption?: number[];
     speed?: number;
+    inactiveColor?: string;
     showWarning?: boolean;
     mouseTail?:
       | boolean
