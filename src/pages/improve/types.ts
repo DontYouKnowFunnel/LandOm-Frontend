@@ -39,6 +39,7 @@ export type Improvement = {
   problem: string;
   changes: string[];
   effect: string;
+  wireframe?: string;
 };
 
 export type LandingPreviewCode = {

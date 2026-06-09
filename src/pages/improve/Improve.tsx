@@ -35,6 +35,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ChevronUpIcon,
+  DashboardIcon,
   FileOutlineIcon,
   GlobeIcon,
   ImproveActionIcon,
@@ -59,6 +60,7 @@ import {
   getFunnelTypeFromSectionName,
 } from "../../models/funnel";
 import ImprovementView from "./ImprovementView";
+import HtmlCssPreviewFrame from "./components/HtmlCssPreviewFrame";
 import WebpageView from "./WebpageView";
 import type {
   AppliedCodegenVersion,
@@ -86,13 +88,18 @@ type PendingOptimizationPlan = {
   improvements: Improvement[];
 };
 
+type OptimizationRecommendationWithWireframe =
+  OptimizationRecommendationResponse & {
+    wireframe?: string | null;
+  };
+
 const isPendingOptimizationPlan = (plan?: OptimizationPlanResponse | null) =>
   plan?.codeGenerationStatus ===
     OptimizationPlanResponseCodeGenerationStatus.CODE_NOT_GENERATED &&
   !!plan.recommendations?.length;
 
 const mapOptimizationRecommendationsToImprovements = (
-  recommendations?: OptimizationRecommendationResponse[]
+  recommendations?: OptimizationRecommendationWithWireframe[]
 ): Improvement[] =>
   recommendations
     ?.filter((recommendation) => recommendation.id != null)
@@ -116,6 +123,7 @@ const mapOptimizationRecommendationsToImprovements = (
           recommendation.expected_behavior_change ??
           recommendation.risk_or_caveat ??
           "선택한 고객 페르소나가 다음 행동으로 이동할 가능성을 높입니다.",
+        wireframe: recommendation.wireframe?.trim() || undefined,
       };
     }) ?? [];
 
@@ -732,6 +740,7 @@ const ImprovementCard = ({
   isSelected,
   onToggleExpanded,
   onToggleSelected,
+  onPreviewWireframe,
 }: {
   improvement: Improvement;
   displayNumber: number;
@@ -739,6 +748,7 @@ const ImprovementCard = ({
   isSelected: boolean;
   onToggleExpanded: () => void;
   onToggleSelected: () => void;
+  onPreviewWireframe: (wireframe?: string) => void;
 }) => (
   <div
     className={`flex w-full flex-col gap-2.5 rounded-md p-3 ${
@@ -799,6 +809,14 @@ const ImprovementCard = ({
           <p className="font-medium text-slate-600">예상 효과</p>
           <p className="font-normal text-slate-800">{improvement.effect}</p>
         </div>
+        <button
+          type="button"
+          onClick={() => onPreviewWireframe(improvement.wireframe)}
+          className="flex h-10 w-full items-center justify-center gap-1 rounded-lg bg-blue-500 p-2.5 text-sm font-semibold leading-5 text-white transition hover:bg-blue-600 active:scale-[0.99]"
+        >
+          <DashboardIcon className="h-4 w-4 shrink-0" />
+          개선안 미리 보기
+        </button>
       </>
     )}
   </div>
@@ -809,12 +827,14 @@ const ImprovementReviewPanel = ({
   selectedImprovementIds,
   isApplying,
   onToggleImprovement,
+  onPreviewWireframe,
   onApply,
 }: {
   improvements: Improvement[];
   selectedImprovementIds: number[];
   isApplying: boolean;
   onToggleImprovement: (id: number) => void;
+  onPreviewWireframe: (wireframe?: string) => void;
   onApply: () => void;
 }) => {
   const [expandedId, setExpandedId] = useState(improvements[0]?.id ?? 1);
@@ -835,6 +855,7 @@ const ImprovementReviewPanel = ({
             )
           }
           onToggleSelected={() => onToggleImprovement(improvement.id)}
+          onPreviewWireframe={onPreviewWireframe}
         />
       ))}
       <button
@@ -1109,6 +1130,7 @@ const ImprovementPanel = ({
   onOpenReview,
   onReviewOptimizationPlan,
   onToggleImprovement,
+  onPreviewWireframe,
   onApply,
   onViewGeneratedCode,
   onSelectCodegenVersion,
@@ -1134,6 +1156,7 @@ const ImprovementPanel = ({
   onOpenReview: () => void;
   onReviewOptimizationPlan: (plan: PendingOptimizationPlan) => void;
   onToggleImprovement: (id: number) => void;
+  onPreviewWireframe: (wireframe?: string) => void;
   onApply: () => void;
   onViewGeneratedCode: () => void;
   onSelectCodegenVersion: (version: AppliedCodegenVersion) => void;
@@ -1177,6 +1200,7 @@ const ImprovementPanel = ({
           selectedImprovementIds={selectedImprovementIds}
           isApplying={false}
           onToggleImprovement={onToggleImprovement}
+          onPreviewWireframe={onPreviewWireframe}
           onApply={onApply}
         />
       )}
@@ -1268,6 +1292,74 @@ const TopBar = ({
   </div>
 );
 
+const WireframePreviewModal = ({
+  wireframeHtml,
+  projectUrl,
+  reloadKey,
+  onClose,
+}: {
+  wireframeHtml: string;
+  projectUrl: string;
+  reloadKey: number;
+  onClose: () => void;
+}) => {
+  const trimmedWireframeHtml = wireframeHtml.trim();
+  const previewHtml = trimmedWireframeHtml
+    ? trimmedWireframeHtml
+    : `<div class="flex min-h-screen w-full items-center justify-center p-6 text-lg font-semibold text-slate-800">생성된 Wireframe이 없습니다</div>`;
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center overflow-hidden p-2.5"
+      style={{ backgroundColor: "rgba(2, 6, 23, 0.33)" }}
+      role="presentation"
+      onMouseDown={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="wireframe-preview-title"
+        className="flex flex-col gap-3 overflow-hidden rounded-xl border border-slate-300 bg-white p-3.5 shadow-[0px_0px_16px_4px_rgba(15,23,42,0.25)]"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <p
+          id="wireframe-preview-title"
+          className="text-sm font-medium leading-5 text-slate-600"
+        >
+          개선안 미리 보기
+        </p>
+        <div
+          className="flex items-center justify-center overflow-hidden bg-white"
+          style={{
+            width: "min(512px, calc(100vw - 48px))",
+            height: "min(512px, calc(100vh - 120px))",
+          }}
+        >
+          <HtmlCssPreviewFrame
+            title="개선안 미리 보기"
+            previewCode={{ html: previewHtml, css: "" }}
+            baseUrl={projectUrl}
+            reloadKey={reloadKey}
+            includeTailwind
+            bodyClassName="bg-white text-slate-950 antialiased"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LandingImprovementContent = ({
   projectState,
   isProjectLoading,
@@ -1300,6 +1392,9 @@ const LandingImprovementContent = ({
   const [codegenRequestedAt, setCodegenRequestedAt] = useState(0);
   const [generatedCodeOverride, setGeneratedCodeOverride] =
     useState<LandingPreviewCode | null>(null);
+  const [previewWireframeHtml, setPreviewWireframeHtml] = useState<
+    string | null
+  >(null);
   const activeView: ImprovePreviewView = location.pathname.endsWith(
     "/improvement"
   )
@@ -1677,6 +1772,14 @@ const LandingImprovementContent = ({
     );
   };
 
+  const handlePreviewWireframe = (wireframe?: string) => {
+    setPreviewWireframeHtml(wireframe?.trim() ?? "");
+  };
+
+  const handleCloseWireframePreview = () => {
+    setPreviewWireframeHtml(null);
+  };
+
   const handleApply = () => {
     if (!selectedSectionId || selectedImprovementIds.length === 0) return;
 
@@ -1810,10 +1913,19 @@ const LandingImprovementContent = ({
             onOpenReview={handleOpenReview}
             onReviewOptimizationPlan={handleReviewOptimizationPlan}
             onToggleImprovement={handleToggleImprovement}
+            onPreviewWireframe={handlePreviewWireframe}
             onApply={handleApply}
             onViewGeneratedCode={handleViewGeneratedCode}
             onSelectCodegenVersion={handleSelectCodegenVersion}
             onPlaySession={handlePlaySession}
+          />
+        )}
+        {previewWireframeHtml !== null && (
+          <WireframePreviewModal
+            wireframeHtml={previewWireframeHtml}
+            projectUrl={projectState.project.url}
+            reloadKey={reloadKey}
+            onClose={handleCloseWireframePreview}
           />
         )}
       </div>
