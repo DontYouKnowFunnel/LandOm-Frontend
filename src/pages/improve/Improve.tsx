@@ -37,6 +37,7 @@ import {
   ChevronUpIcon,
   DashboardIcon,
   FileOutlineIcon,
+  FunnelIcon,
   GlobeIcon,
   ImproveActionIcon,
   ImproveBackgroundIcon,
@@ -302,9 +303,12 @@ const getFunnelSectionId = (stage: FunnelData, index: number) => {
 
 const mapFunnelDataToSections = (
   project: ProjectContext,
-  funnelData?: FunnelData[]
+  funnelData?: FunnelData[],
+  useFallbackFunnels = true
 ): FunnelSection[] => {
   if (!funnelData?.length) {
+    if (!useFallbackFunnels) return [];
+
     return fallbackFunnels.map((funnel) => ({
       ...funnel,
       reachedUsers: funnel.reachedUsers + Math.max(project.id, 1),
@@ -335,9 +339,14 @@ const mapFunnelDataToSections = (
 
 const buildLandingProjectState = (
   project: ProjectContext,
-  funnelData?: FunnelData[]
+  funnelData?: FunnelData[],
+  useFallbackFunnels = true
 ): LandingProjectState => {
-  const funnels = mapFunnelDataToSections(project, funnelData);
+  const funnels = mapFunnelDataToSections(
+    project,
+    funnelData,
+    useFallbackFunnels
+  );
 
   return {
     project,
@@ -464,18 +473,100 @@ const NoProjectState = ({
   </div>
 );
 
+const getFunnelAnalysisRequiredMessage = (
+  status?: FunnelResponseStatus,
+  hasFunnelSections = false
+) => {
+  if (status === FunnelResponseStatus.IN_PROGRESS) {
+    return {
+      title: "퍼널 분석이 진행 중입니다",
+      description:
+        "분석이 완료되면 실제 이탈 구간을 기준으로 개선안을 생성할 수 있습니다.",
+      buttonLabel: "퍼널 분석 확인하기",
+    };
+  }
+
+  if (status === FunnelResponseStatus.FAILED) {
+    return {
+      title: "퍼널 분석이 완료되지 않았습니다",
+      description:
+        "퍼널 분석 화면에서 분석을 다시 진행한 뒤 랜딩 페이지 개선안을 생성해주세요.",
+      buttonLabel: "퍼널 분석 다시 하기",
+    };
+  }
+
+  if (status === FunnelResponseStatus.COMPLETED && !hasFunnelSections) {
+    return {
+      title: "분석된 퍼널이 없습니다",
+      description:
+        "개선안을 만들 수 있는 퍼널 데이터가 없습니다. 퍼널 분석 화면에서 분석 결과를 확인해주세요.",
+      buttonLabel: "퍼널 분석 확인하기",
+    };
+  }
+
+  return {
+    title: "퍼널 분석이 완료되지 않았습니다",
+    description:
+      "랜딩 페이지의 실제 이탈 구간을 먼저 분석해야 개선안을 생성할 수 있습니다. 퍼널 분석 화면에서 분석을 진행해주세요.",
+    buttonLabel: "퍼널 분석하기",
+  };
+};
+
+const FunnelAnalysisRequiredNotice = ({
+  status,
+  hasFunnelSections,
+  onOpenFunnelAnalysis,
+}: {
+  status?: FunnelResponseStatus;
+  hasFunnelSections: boolean;
+  onOpenFunnelAnalysis: () => void;
+}) => {
+  const message = getFunnelAnalysisRequiredMessage(status, hasFunnelSections);
+
+  return (
+    <div className="flex w-full flex-col gap-4">
+      <div className="flex w-full flex-col gap-1.5">
+        <SectionLabel>개선을 원하는 퍼널</SectionLabel>
+        <div className="flex min-h-[300px] w-full flex-col items-center justify-center gap-3 rounded-md bg-slate-100 px-6 py-8 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
+            <FunnelIcon className="h-5 w-5" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-base font-semibold leading-6 text-slate-800">
+              {message.title}
+            </p>
+            <p className="max-w-[320px] text-sm font-medium leading-5 text-slate-500">
+              {message.description}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenFunnelAnalysis}
+            className="mt-1 h-9 rounded-lg bg-blue-500 px-4 text-sm font-semibold leading-5 text-white transition hover:bg-blue-600"
+          >
+            {message.buttonLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const FunnelSelectPanel = ({
   projectState,
   selectedFunnel,
   selectedFunnelId,
   persona,
   reviewNotificationCount,
+  funnelAnalysisStatus,
+  canSelectFunnel,
   isProjectLoading,
   canGenerate,
   onSelectFunnel,
   onChangePersona,
   onGenerate,
   onOpenReview,
+  onOpenFunnelAnalysis,
   onPlaySession,
 }: {
   projectState: LandingProjectState;
@@ -483,12 +574,15 @@ const FunnelSelectPanel = ({
   selectedFunnelId: string;
   persona: string;
   reviewNotificationCount: number;
+  funnelAnalysisStatus?: FunnelResponseStatus;
+  canSelectFunnel: boolean;
   isProjectLoading: boolean;
   canGenerate: boolean;
   onSelectFunnel: (funnelId: string) => void;
   onChangePersona: (value: string) => void;
   onGenerate: () => void;
   onOpenReview: () => void;
+  onOpenFunnelAnalysis: () => void;
   onPlaySession: (sessionId: string) => void;
 }) => {
   const { data: droppedSessionsData, isLoading: isDroppedSessionsLoading } =
@@ -501,7 +595,8 @@ const FunnelSelectPanel = ({
       },
       {
         query: {
-          enabled: !!projectState.project.id && selectedFunnel?.sectionId != null,
+          enabled:
+            !!projectState.project.id && selectedFunnel?.sectionId != null,
           staleTime: 60_000,
           refetchOnWindowFocus: false,
           retry: 1,
@@ -573,7 +668,15 @@ const FunnelSelectPanel = ({
         </button>
       )}
 
-      <div className="flex w-full flex-col gap-4">
+      {!isProjectLoading && !canSelectFunnel ? (
+        <FunnelAnalysisRequiredNotice
+          status={funnelAnalysisStatus}
+          hasFunnelSections={projectState.funnels.length > 0}
+          onOpenFunnelAnalysis={onOpenFunnelAnalysis}
+        />
+      ) : (
+        <>
+          <div className="flex w-full flex-col gap-4">
         <div className="flex w-full flex-col gap-1.5">
           <SectionLabel>개선을 원하는 퍼널</SectionLabel>
           <label className="relative flex w-full items-center gap-2.5 rounded-md border border-slate-200 p-3">
@@ -702,16 +805,18 @@ const FunnelSelectPanel = ({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onGenerate}
-        disabled={!canGenerate}
-        className="relative flex h-10 w-full items-center justify-center gap-1 overflow-hidden rounded-lg bg-slate-900 p-2.5 text-sm font-semibold leading-5 text-white disabled:cursor-not-allowed disabled:bg-slate-500"
-      >
-        <ImproveActionIcon className="h-4 w-4" />
-        개선안 생성하기
-        <span className="absolute -right-7 -top-14 h-32 w-32 rounded-xl bg-blue-600 opacity-[0.33] blur-[32px]" />
-      </button>
+          <button
+            type="button"
+            onClick={onGenerate}
+            disabled={!canGenerate}
+            className="relative flex h-10 w-full items-center justify-center gap-1 overflow-hidden rounded-lg bg-slate-900 p-2.5 text-sm font-semibold leading-5 text-white disabled:cursor-not-allowed disabled:bg-slate-500"
+          >
+            <ImproveActionIcon className="h-4 w-4" />
+            개선안 생성하기
+            <span className="absolute -right-7 -top-14 h-32 w-32 rounded-xl bg-blue-600 opacity-[0.33] blur-[32px]" />
+          </button>
+        </>
+      )}
     </>
   );
 };
@@ -1115,6 +1220,8 @@ const ImprovementPanel = ({
   selectedImprovementIds,
   pendingOptimizationPlans,
   reviewNotificationCount,
+  funnelAnalysisStatus,
+  canSelectFunnel,
   codegenVersions,
   currentCodegenVersionKey,
   isCodegenVersionsLoading,
@@ -1125,6 +1232,7 @@ const ImprovementPanel = ({
   onChangePersona,
   onGenerate,
   onOpenReview,
+  onOpenFunnelAnalysis,
   onReviewOptimizationPlan,
   onToggleImprovement,
   onPreviewWireframe,
@@ -1141,6 +1249,8 @@ const ImprovementPanel = ({
   selectedImprovementIds: number[];
   pendingOptimizationPlans: PendingOptimizationPlan[];
   reviewNotificationCount: number;
+  funnelAnalysisStatus?: FunnelResponseStatus;
+  canSelectFunnel: boolean;
   codegenVersions: AppliedCodegenVersion[];
   currentCodegenVersionKey: string;
   isCodegenVersionsLoading: boolean;
@@ -1151,6 +1261,7 @@ const ImprovementPanel = ({
   onChangePersona: (value: string) => void;
   onGenerate: () => void;
   onOpenReview: () => void;
+  onOpenFunnelAnalysis: () => void;
   onReviewOptimizationPlan: (plan: PendingOptimizationPlan) => void;
   onToggleImprovement: (id: number) => void;
   onPreviewWireframe: (wireframe?: string) => void;
@@ -1172,12 +1283,15 @@ const ImprovementPanel = ({
           selectedFunnelId={selectedFunnelId}
           persona={persona}
           reviewNotificationCount={reviewNotificationCount}
+          funnelAnalysisStatus={funnelAnalysisStatus}
+          canSelectFunnel={canSelectFunnel}
           isProjectLoading={isProjectLoading}
           canGenerate={canGenerate}
           onSelectFunnel={onSelectFunnel}
           onChangePersona={onChangePersona}
           onGenerate={onGenerate}
           onOpenReview={onOpenReview}
+          onOpenFunnelAnalysis={onOpenFunnelAnalysis}
           onPlaySession={onPlaySession}
         />
       )}
@@ -1361,10 +1475,12 @@ const LandingImprovementContent = ({
   projectState,
   isProjectLoading,
   isFunnelLoading,
+  funnelAnalysisStatus,
 }: {
   projectState: LandingProjectState;
   isProjectLoading: boolean;
   isFunnelLoading: boolean;
+  funnelAnalysisStatus?: FunnelResponseStatus;
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -1372,9 +1488,7 @@ const LandingImprovementContent = ({
   const [selectedFunnelId, setSelectedFunnelId] = useState("");
   const [persona, setPersona] = useState("");
   const [panelMode, setPanelMode] = useState<PanelMode>("create");
-  const [isPanelOpen, setIsPanelOpen] = useState(
-    hasInitialCreatePanelRequest
-  );
+  const [isPanelOpen, setIsPanelOpen] = useState(hasInitialCreatePanelRequest);
   const [selectedImprovementIds, setSelectedImprovementIds] = useState<
     number[]
   >([]);
@@ -1419,6 +1533,9 @@ const LandingImprovementContent = ({
   );
   const effectiveSelectedFunnelId = selectedFunnel?.id ?? "";
   const selectedSectionId = selectedFunnel?.sectionId ?? 0;
+  const canSelectFunnel =
+    funnelAnalysisStatus === FunnelResponseStatus.COMPLETED &&
+    projectState.funnels.length > 0;
   const optimizationPlanFunnels = useMemo(
     () =>
       projectState.funnels.filter(
@@ -1661,6 +1778,7 @@ const LandingImprovementContent = ({
     ]
   );
   const canGenerate =
+    canSelectFunnel &&
     !!selectedFunnel &&
     !!selectedSectionId &&
     persona.trim().length > 0 &&
@@ -1753,6 +1871,11 @@ const LandingImprovementContent = ({
   const handleOpenReview = () => {
     setSelectedImprovementIds([]);
     setPanelMode("optimizationSelect");
+  };
+
+  const handleOpenFunnelAnalysis = () => {
+    setIsPanelOpen(false);
+    navigate("/report");
   };
 
   const handleReviewOptimizationPlan = (plan: PendingOptimizationPlan) => {
@@ -1892,6 +2015,8 @@ const LandingImprovementContent = ({
             selectedImprovementIds={selectedImprovementIds}
             pendingOptimizationPlans={pendingOptimizationPlans}
             reviewNotificationCount={reviewNotificationCount}
+            funnelAnalysisStatus={funnelAnalysisStatus}
+            canSelectFunnel={canSelectFunnel}
             codegenVersions={codegenVersions}
             currentCodegenVersionKey={effectiveCodegenVersionKey}
             isCodegenVersionsLoading={
@@ -1908,6 +2033,7 @@ const LandingImprovementContent = ({
             onChangePersona={setPersona}
             onGenerate={handleGenerate}
             onOpenReview={handleOpenReview}
+            onOpenFunnelAnalysis={handleOpenFunnelAnalysis}
             onReviewOptimizationPlan={handleReviewOptimizationPlan}
             onToggleImprovement={handleToggleImprovement}
             onPreviewWireframe={handlePreviewWireframe}
@@ -2016,7 +2142,8 @@ const Improve = () => {
         projectContext,
         funnelDataResponse?.status === FunnelResponseStatus.COMPLETED
           ? funnelDataResponse.funnelData
-          : undefined
+          : undefined,
+        false
       ),
     [funnelDataResponse, projectContext]
   );
@@ -2043,6 +2170,7 @@ const Improve = () => {
         isFunnelLoading ||
         funnelDataResponse?.status === FunnelResponseStatus.IN_PROGRESS
       }
+      funnelAnalysisStatus={funnelDataResponse?.status}
     />
   );
 };
