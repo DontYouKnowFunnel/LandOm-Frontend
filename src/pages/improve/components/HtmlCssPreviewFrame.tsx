@@ -25,11 +25,13 @@ const buildPreviewSrcDoc = ({
   baseUrl,
   includeTailwind = false,
   bodyClassName = "",
+  hideScrollbar = false,
 }: {
   previewCode: LandingPreviewCode;
   baseUrl: string;
   includeTailwind?: boolean;
   bodyClassName?: string;
+  hideScrollbar?: boolean;
 }) => `<!doctype html>
 <html lang="ko">
   <head>
@@ -51,6 +53,18 @@ const buildPreviewSrcDoc = ({
         font-family: "Pretendard Variable", Pretendard, Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         background: #ffffff;
       }
+      ${
+        hideScrollbar
+          ? `html, body {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar {
+        display: none;
+      }`
+          : ""
+      }
       ${previewCode.css}
     </style>
   </head>
@@ -66,6 +80,7 @@ const HtmlCssPreviewFrame = ({
   reloadKey,
   includeTailwind,
   bodyClassName,
+  hideScrollbar,
 }: {
   title: string;
   previewCode: LandingPreviewCode;
@@ -73,6 +88,7 @@ const HtmlCssPreviewFrame = ({
   reloadKey: number;
   includeTailwind?: boolean;
   bodyClassName?: string;
+  hideScrollbar?: boolean;
 }) => (
   <iframe
     key={`${title}-${reloadKey}`}
@@ -82,6 +98,7 @@ const HtmlCssPreviewFrame = ({
       baseUrl,
       includeTailwind,
       bodyClassName,
+      hideScrollbar,
     })}
     className="h-full w-full border-0 bg-white"
     sandbox="allow-forms allow-modals allow-popups allow-scripts"

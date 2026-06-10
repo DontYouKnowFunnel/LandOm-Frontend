@@ -35,6 +35,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ChevronUpIcon,
+  CloseIcon,
   DashboardIcon,
   FileOutlineIcon,
   FunnelIcon,
@@ -1403,6 +1404,69 @@ const TopBar = ({
   </div>
 );
 
+const emptyWireframePreviewHtml = `<main class="min-h-screen bg-slate-50 p-6 text-slate-950">
+  <section class="mx-auto flex w-full max-w-5xl flex-col gap-4">
+    <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <div class="flex items-center gap-3">
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-sm font-bold text-blue-500">W</span>
+        <div>
+          <p class="text-sm font-semibold leading-5 text-slate-900">생성된 Wireframe이 없습니다</p>
+          <p class="text-xs font-medium leading-4 text-slate-500">선택한 개선안에 포함된 HTML이 없습니다.</p>
+        </div>
+      </div>
+      <span class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Preview</span>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
+      <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
+          <div class="h-3 w-28 rounded-full bg-slate-200"></div>
+          <div class="flex gap-2">
+            <div class="h-3 w-12 rounded-full bg-slate-100"></div>
+            <div class="h-3 w-12 rounded-full bg-slate-100"></div>
+            <div class="h-3 w-12 rounded-full bg-slate-100"></div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <span class="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-500">Wireframe draft</span>
+          <div class="h-8 w-4/5 rounded-md bg-slate-900"></div>
+          <div class="h-8 w-3/5 rounded-md bg-slate-900"></div>
+          <div class="space-y-2 pt-1">
+            <div class="h-3 w-full rounded-full bg-slate-200"></div>
+            <div class="h-3 w-11/12 rounded-full bg-slate-200"></div>
+            <div class="h-3 w-8/12 rounded-full bg-slate-200"></div>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 pt-2">
+            <div class="h-10 w-36 rounded-lg bg-blue-500"></div>
+            <div class="h-10 w-28 rounded-lg border border-slate-200 bg-white"></div>
+            <div class="h-3 w-32 rounded-full bg-slate-200"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="flex flex-col gap-4">
+        <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="mb-3 h-4 w-28 rounded-full bg-slate-800"></div>
+          <div class="space-y-2">
+            <div class="h-3 w-full rounded-full bg-slate-200"></div>
+            <div class="h-3 w-10/12 rounded-full bg-slate-200"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 p-4">
+            <div class="mb-3 h-7 w-7 rounded-md bg-blue-500"></div>
+            <div class="h-3 w-16 rounded-full bg-blue-200"></div>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-white p-4">
+            <div class="mb-3 h-7 w-7 rounded-md bg-slate-200"></div>
+            <div class="h-3 w-16 rounded-full bg-slate-200"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>`;
+
 const WireframePreviewModal = ({
   wireframeHtml,
   projectUrl,
@@ -1415,9 +1479,7 @@ const WireframePreviewModal = ({
   onClose: () => void;
 }) => {
   const trimmedWireframeHtml = wireframeHtml.trim();
-  const previewHtml = trimmedWireframeHtml
-    ? trimmedWireframeHtml
-    : `<div class="flex min-h-screen w-full items-center justify-center p-6 text-lg font-semibold text-slate-800">생성된 Wireframe이 없습니다</div>`;
+  const previewHtml = trimmedWireframeHtml || emptyWireframePreviewHtml;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -1441,30 +1503,44 @@ const WireframePreviewModal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="wireframe-preview-title"
-        className="flex flex-col gap-3 overflow-hidden rounded-xl border border-slate-300 bg-white p-3.5 shadow-[0px_0px_16px_4px_rgba(15,23,42,0.25)]"
+        className="flex w-[min(1080px,calc(100vw-32px))] flex-col gap-3 overflow-hidden rounded-xl border border-slate-300 bg-white p-3.5 shadow-[0px_0px_16px_4px_rgba(15,23,42,0.25)]"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <p
-          id="wireframe-preview-title"
-          className="text-sm font-medium leading-5 text-slate-600"
-        >
-          개선안 미리 보기
-        </p>
+        <div className="flex items-center">
+          <div className="min-w-0 flex-1">
+            <p
+              id="wireframe-preview-title"
+              className="text-sm font-semibold text-slate-800"
+            >
+              개선안 미리 보기
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            aria-label="개선안 미리 보기 닫기"
+          >
+            <CloseIcon className="h-6 w-6" />
+          </button>
+        </div>
         <div
-          className="flex items-center justify-center overflow-hidden bg-white"
+          className="flex items-center justify-center overflow-hidden rounded-lg border border-slate-200"
           style={{
-            width: "min(512px, calc(100vw - 48px))",
-            height: "min(512px, calc(100vh - 120px))",
+            height: "min(800px, calc(100vh - 120px))",
           }}
         >
-          <HtmlCssPreviewFrame
-            title="개선안 미리 보기"
-            previewCode={{ html: previewHtml, css: "" }}
-            baseUrl={projectUrl}
-            reloadKey={reloadKey}
-            includeTailwind
-            bodyClassName="bg-white text-slate-950 antialiased"
-          />
+          <div className="h-full w-full overflow-hidden">
+            <HtmlCssPreviewFrame
+              title="개선안 미리 보기"
+              previewCode={{ html: previewHtml, css: "" }}
+              baseUrl={projectUrl}
+              reloadKey={reloadKey}
+              includeTailwind
+              bodyClassName="bg-white text-slate-950 antialiased"
+              hideScrollbar
+            />
+          </div>
         </div>
       </div>
     </div>
