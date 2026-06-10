@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import {
   Navigate,
@@ -852,78 +852,144 @@ const ImprovementCard = ({
   onToggleExpanded: () => void;
   onToggleSelected: () => void;
   onPreviewWireframe: (wireframe?: string) => void;
-}) => (
-  <div
-    className={`flex w-full flex-col gap-2.5 rounded-md p-3 ${
-      isSelected ? "bg-blue-50" : "bg-slate-50"
-    }`}
-  >
-    <div className="flex h-6 w-full items-center gap-2">
-      <button
-        type="button"
-        onClick={onToggleSelected}
-        aria-label={`개선안 ${displayNumber} 선택`}
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
-          isSelected
-            ? "border-blue-500 bg-blue-500 text-white"
-            : "border-slate-800 bg-white"
+}) => {
+  const titleMeasureRef = useRef<HTMLSpanElement | null>(null);
+  const [isTitleOverflowing, setIsTitleOverflowing] = useState(false);
+  const shouldShowExpandedTitleBlock = isExpanded && isTitleOverflowing;
+
+  useEffect(() => {
+    const titleElement = titleMeasureRef.current;
+    if (!titleElement) return;
+
+    const updateTitleOverflow = () => {
+      setIsTitleOverflowing(
+        titleElement.scrollWidth > titleElement.clientWidth + 1
+      );
+    };
+
+    updateTitleOverflow();
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateTitleOverflow);
+
+    resizeObserver?.observe(titleElement);
+    window.addEventListener("resize", updateTitleOverflow);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", updateTitleOverflow);
+    };
+  }, [displayNumber, improvement.title]);
+
+  return (
+    <div
+      className={`flex w-full flex-col gap-2.5 rounded-md p-3 ${
+        isSelected ? "bg-blue-50" : "bg-slate-50"
+      }`}
+    >
+      <div
+        className={`flex w-full gap-2 ${
+          shouldShowExpandedTitleBlock ? "items-start" : "items-center"
         }`}
       >
-        {isSelected && <CheckIcon className="h-4 w-4" />}
-      </button>
-      <button
-        type="button"
-        onClick={onToggleExpanded}
-        className="min-w-0 flex-1 text-left text-sm font-medium leading-5 text-slate-800"
-      >
-        <span>개선안 </span>
-        <span className="font-bold">#{displayNumber}: </span>
-        <span>{improvement.title}</span>
-      </button>
-      <button
-        type="button"
-        onClick={onToggleExpanded}
-        aria-label={isExpanded ? "개선안 접기" : "개선안 펼치기"}
-        className="flex h-6 w-6 shrink-0 items-center justify-center"
-      >
-        {isExpanded ? (
-          <ChevronUpIcon className="h-6 w-6 text-slate-900" />
-        ) : (
-          <ChevronDownIcon className="h-6 w-6 text-slate-900" />
-        )}
-      </button>
-    </div>
-
-    {isExpanded && (
-      <>
-        <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
-          <p className="font-medium text-slate-600">보이는 문제</p>
-          <p className="font-normal text-slate-800">{improvement.problem}</p>
-        </div>
-        <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
-          <p className="font-medium text-slate-600">변경 예정 내용</p>
-          <ul className="list-disc pl-5 font-normal text-slate-800">
-            {improvement.changes.map((change) => (
-              <li key={change}>{change}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
-          <p className="font-medium text-slate-600">예상 효과</p>
-          <p className="font-normal text-slate-800">{improvement.effect}</p>
-        </div>
         <button
           type="button"
-          onClick={() => onPreviewWireframe(improvement.wireframe)}
-          className="flex h-10 w-full items-center justify-center gap-1 rounded-lg bg-blue-500 p-2.5 text-sm font-semibold leading-5 text-white transition hover:bg-blue-600 active:scale-[0.99]"
+          onClick={onToggleSelected}
+          aria-label={`개선안 ${displayNumber} 선택`}
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
+            isSelected
+              ? "border-blue-500 bg-blue-500 text-white"
+              : "border-slate-800 bg-white"
+          }`}
         >
-          <DashboardIcon className="h-4 w-4 shrink-0" />
-          개선안 미리 보기
+          {isSelected && <CheckIcon className="h-4 w-4" />}
         </button>
-      </>
-    )}
-  </div>
-);
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          className="relative min-w-0 flex-1 text-left text-sm font-medium leading-5 text-slate-800"
+        >
+          <span
+            ref={titleMeasureRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 block truncate whitespace-nowrap opacity-0"
+          >
+            개선안{" "}
+            <span className="font-bold">#{displayNumber}: </span>
+            {improvement.title}
+          </span>
+
+          {shouldShowExpandedTitleBlock ? (
+            <span className="block">
+              <span className="block">
+                개선안{" "}
+                <span className="font-bold">#{displayNumber}: </span>
+              </span>
+              <span className="block whitespace-normal break-words">
+                {improvement.title}
+              </span>
+            </span>
+          ) : (
+            <span
+              className={`block ${
+                isExpanded
+                  ? "whitespace-normal break-words"
+                  : "truncate whitespace-nowrap"
+              }`}
+            >
+              <span>개선안 </span>
+              <span className="font-bold">#{displayNumber}: </span>
+              <span>{improvement.title}</span>
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          aria-label={isExpanded ? "개선안 접기" : "개선안 펼치기"}
+          className="flex h-6 w-6 shrink-0 items-center justify-center"
+        >
+          {isExpanded ? (
+            <ChevronUpIcon className="h-6 w-6 text-slate-900" />
+          ) : (
+            <ChevronDownIcon className="h-6 w-6 text-slate-900" />
+          )}
+        </button>
+      </div>
+
+      {isExpanded && (
+        <>
+          <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
+            <p className="font-medium text-slate-600">보이는 문제</p>
+            <p className="font-normal text-slate-800">{improvement.problem}</p>
+          </div>
+          <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
+            <p className="font-medium text-slate-600">변경 예정 내용</p>
+            <ul className="list-disc pl-5 font-normal text-slate-800">
+              {improvement.changes.map((change) => (
+                <li key={change}>{change}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
+            <p className="font-medium text-slate-600">예상 효과</p>
+            <p className="font-normal text-slate-800">{improvement.effect}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onPreviewWireframe(improvement.wireframe)}
+            className="flex h-10 w-full items-center justify-center gap-1 rounded-lg bg-blue-500 p-2.5 text-sm font-semibold leading-5 text-white transition hover:bg-blue-600 active:scale-[0.99]"
+          >
+            <DashboardIcon className="h-4 w-4 shrink-0" />
+            개선안 미리 보기
+          </button>
+        </>
+      )}
+    </div>
+  );
+};
 
 const ImprovementReviewPanel = ({
   improvements,
