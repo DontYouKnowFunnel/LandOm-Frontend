@@ -153,6 +153,19 @@ const Report = () => {
     ? "퍼널 분석을 실패했습니다.\n다시 시도해주세요."
     : "퍼널 정보가 등록되지 않았습니다.\n퍼널 분석을 진행해주세요.";
   const projectName = projectDetail?.name ?? "프로젝트";
+  const handleOpenImproveFunnel = (stage: FunnelStage) => {
+    const params = new URLSearchParams({ panel: "create" });
+
+    if (stage.sectionId != null) {
+      params.set("sectionId", String(stage.sectionId));
+    }
+
+    if (stage.sectionName) {
+      params.set("sectionName", stage.sectionName);
+    }
+
+    navigate(`/improve/webpage?${params.toString()}`);
+  };
 
   const { mutate: startFunnelAnalysis, isPending: isCrawling } = useMutation({
     mutationFn: async () => {
@@ -235,6 +248,9 @@ const Report = () => {
                   navigate(
                     `/session?sessionId=${encodeURIComponent(sessionId)}`
                   )
+                }
+                onImproveFunnel={() =>
+                  handleOpenImproveFunnel(selectedStageForDetail)
                 }
               />
             ) : (
