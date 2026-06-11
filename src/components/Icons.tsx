@@ -66,6 +66,33 @@ export const ImproveIcon = ({
   );
 };
 
+export const EditIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:edit" className={className} {...(props as object)} />
+  );
+};
+
+export const LockIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:lock" className={className} {...(props as object)} />
+  );
+};
+
+export const LogOutIcon = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <Icon icon="lucide:log-out" className={className} {...(props as object)} />
+  );
+};
+
 export const ImproveBackgroundIcon = ({
   className,
   ...props

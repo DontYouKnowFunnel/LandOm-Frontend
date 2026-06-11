@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import {
   Navigate,
@@ -35,8 +35,10 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ChevronUpIcon,
+  CloseIcon,
   DashboardIcon,
   FileOutlineIcon,
+  FunnelIcon,
   GlobeIcon,
   ImproveActionIcon,
   ImproveBackgroundIcon,
@@ -302,9 +304,12 @@ const getFunnelSectionId = (stage: FunnelData, index: number) => {
 
 const mapFunnelDataToSections = (
   project: ProjectContext,
-  funnelData?: FunnelData[]
+  funnelData?: FunnelData[],
+  useFallbackFunnels = true
 ): FunnelSection[] => {
   if (!funnelData?.length) {
+    if (!useFallbackFunnels) return [];
+
     return fallbackFunnels.map((funnel) => ({
       ...funnel,
       reachedUsers: funnel.reachedUsers + Math.max(project.id, 1),
@@ -335,9 +340,14 @@ const mapFunnelDataToSections = (
 
 const buildLandingProjectState = (
   project: ProjectContext,
-  funnelData?: FunnelData[]
+  funnelData?: FunnelData[],
+  useFallbackFunnels = true
 ): LandingProjectState => {
-  const funnels = mapFunnelDataToSections(project, funnelData);
+  const funnels = mapFunnelDataToSections(
+    project,
+    funnelData,
+    useFallbackFunnels
+  );
 
   return {
     project,
@@ -383,10 +393,7 @@ const buildLandingProjectState = (
           "방문자가 자기 상황과 연결되는 항목을 빠르게 찾고, 가격 확인 전 이탈을 줄일 수 있습니다.",
       },
     ],
-    generatedCode: {
-      html: `<header class="site-nav" data-project="${project.id}">\n  <div class="brand">\n    <span class="brand-mark">L</span>\n    <div>\n      <strong>LandOm Smart Bottle</strong>\n      <p>빠르게 가치 판단하는 모바일 쇼핑 고객용</p>\n    </div>\n  </div>\n  <nav>\n    <a>오늘 달라지는 점</a>\n    <a>실사용 장점</a>\n    <a>구매 전 확인</a>\n  </nav>\n</header>\n<main>\n  <section class="hero">\n    <div class="hero-copy">\n      <p class="eyebrow">30초 만에 확인하는 스마트 물병</p>\n      <h1>오늘 마실 물의 온도와 리듬을 바로 확인하세요</h1>\n      <p class="subcopy">출근길에도, 운동 후에도 물 온도와 섭취 흐름을 한눈에 보여줍니다. 복잡한 설정 없이 구매 즉시 하루 컨디션 관리를 시작하세요.</p>\n      <div class="proof-row">\n        <span>누적 구매 12,400+</span>\n        <span>평점 4.8 / 5.0</span>\n        <span>무료 배송</span>\n      </div>\n      <div class="price-row">\n        <strong>89,000원</strong>\n        <span class="discount">오늘 주문 시 31% 할인</span>\n      </div>\n      <div class="actions">\n        <a class="primary-cta">오늘 혜택으로 구매하기</a>\n        <a class="secondary-cta">30초 기능 보기</a>\n      </div>\n    </div>\n    <div class="product-card">\n      <div class="bottle-cap"></div>\n      <div class="bottle-neck"></div>\n      <div class="bottle-body">\n        <span>07°C</span>\n      </div>\n      <div class="floating-note">마지막 섭취 후 2시간 경과</div>\n    </div>\n  </section>\n  <section class="feature-grid">\n    <article><b>첫 화면에서 가치 판단</b><span>가격, 혜택, 핵심 효용을 한 번에 보여줍니다.</span></article>\n    <article><b>구매 불안 완화</b><span>배송, 보증, 평점 정보를 CTA 근처에 배치합니다.</span></article>\n    <article><b>모바일 CTA 강화</b><span>스크롤 전에 구매 행동을 분명하게 만듭니다.</span></article>\n  </section>\n</main>`,
-      css: `body {\n  margin: 0;\n  background: #f4f8ff;\n  color: #0f172a;\n  font-family: Pretendard, Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;\n}\n.site-nav {\n  min-height: 112px;\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 32px;\n  padding: 0 clamp(28px, 4.8vw, 72px);\n  background: white;\n  border-bottom: 1px solid #dbeafe;\n}\n.brand {\n  display: flex;\n  align-items: center;\n  gap: 16px;\n}\n.brand-mark {\n  display: grid;\n  width: 52px;\n  height: 52px;\n  place-items: center;\n  border-radius: 14px;\n  background: #2563eb;\n  color: white;\n  font-size: 24px;\n  font-weight: 900;\n}\n.brand strong {\n  display: block;\n  font-size: 22px;\n  line-height: 1.2;\n  font-weight: 950;\n}\n.brand p {\n  margin: 4px 0 0;\n  color: #2563eb;\n  font-size: 15px;\n  font-weight: 800;\n}\n.site-nav nav {\n  display: flex;\n  flex-wrap: wrap;\n  gap: clamp(18px, 3vw, 42px);\n  color: #1e293b;\n  font-size: 18px;\n  font-weight: 900;\n}\n.hero {\n  display: grid;\n  min-height: calc(100vh - 112px);\n  grid-template-columns: minmax(0, 1.03fr) minmax(320px, 0.97fr);\n  align-items: center;\n  gap: clamp(36px, 7vw, 108px);\n  padding: clamp(64px, 7vw, 104px) clamp(28px, 5.2vw, 84px);\n  background: linear-gradient(135deg, #edf6ff 0%, #f8fbff 52%, #e8f1ff 100%);\n}\n.eyebrow {\n  display: inline-flex;\n  margin: 0 0 20px;\n  border-radius: 999px;\n  background: #dbeafe;\n  color: #1d4ed8;\n  padding: 9px 14px;\n  font-size: 16px;\n  font-weight: 950;\n  letter-spacing: 0;\n}\n.hero h1 {\n  margin: 0;\n  max-width: 900px;\n  color: #0b1f2a;\n  font-size: clamp(50px, 7.2vw, 104px);\n  line-height: 1.02;\n  font-weight: 950;\n}\n.subcopy {\n  margin: 28px 0 0;\n  max-width: 820px;\n  color: #52667a;\n  font-size: clamp(20px, 2.1vw, 28px);\n  line-height: 1.65;\n  font-weight: 750;\n}\n.proof-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n  margin-top: 28px;\n}\n.proof-row span {\n  border-radius: 999px;\n  border: 1px solid #bfdbfe;\n  background: white;\n  padding: 10px 14px;\n  color: #1d4ed8;\n  font-size: 16px;\n  font-weight: 900;\n}\n.price-row {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 18px;\n  margin-top: 34px;\n}\n.price-row strong {\n  font-size: clamp(36px, 4.4vw, 62px);\n  line-height: 1;\n  font-weight: 950;\n}\n.discount {\n  border-radius: 12px;\n  background: #fff7ed;\n  color: #c2410c;\n  padding: 10px 14px;\n  font-size: clamp(18px, 2vw, 26px);\n  font-weight: 950;\n}\n.actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 16px;\n  margin-top: 36px;\n}\n.actions a {\n  border-radius: 8px;\n  padding: 18px 34px;\n  font-size: clamp(18px, 2vw, 26px);\n  font-weight: 950;\n  text-decoration: none;\n}\n.primary-cta {\n  background: #2563eb;\n  color: white;\n  box-shadow: 0 18px 34px rgba(37, 99, 235, 0.24);\n}\n.secondary-cta {\n  background: white;\n  color: #0f172a;\n  border: 1px solid #adc7e8;\n}\n.product-card {\n  position: relative;\n  display: flex;\n  min-height: 520px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 8px;\n  background: linear-gradient(135deg, #d7eaff, #ffffff);\n  box-shadow: inset 0 0 0 1px #c6dafa, 0 28px 72px rgba(37, 99, 235, 0.13);\n}\n.bottle-cap {\n  position: absolute;\n  top: 82px;\n  width: 128px;\n  height: 64px;\n  border-radius: 12px;\n  background: linear-gradient(90deg, #eef4f4, #d7e3e5, #eef4f4);\n  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);\n}\n.bottle-neck {\n  position: absolute;\n  top: 148px;\n  width: 86px;\n  height: 72px;\n  border-radius: 10px 10px 0 0;\n  background: linear-gradient(90deg, #f7fbfb, #d8e5e6, #f7fbfb);\n  border: 1px solid #c6d6d9;\n}\n.bottle-body {\n  display: grid;\n  width: min(72%, 330px);\n  height: 360px;\n  place-items: center;\n  border-radius: 86px 86px 48px 48px;\n  background: linear-gradient(90deg, #f8ffff, #dce8eb, #f8ffff);\n  border: 1px solid #b8cbd0;\n  box-shadow: 0 28px 64px rgba(15, 23, 42, 0.14);\n}\n.bottle-body span {\n  border-radius: 999px;\n  background: #0b1f2a;\n  color: #bfdbfe;\n  padding: 14px 24px;\n  font-size: 28px;\n  font-weight: 950;\n}\n.floating-note {\n  position: absolute;\n  right: 28px;\n  bottom: 34px;\n  max-width: 230px;\n  border-radius: 8px;\n  background: white;\n  padding: 16px 18px;\n  color: #1d4ed8;\n  font-size: 17px;\n  font-weight: 950;\n  box-shadow: 0 18px 38px rgba(30, 64, 175, 0.18);\n}\n.feature-grid {\n  display: grid;\n  grid-template-columns: repeat(3, minmax(0, 1fr));\n  gap: 18px;\n  padding: 28px clamp(28px, 5.2vw, 84px) 80px;\n  background: #f8fbff;\n}\n.feature-grid article {\n  border-radius: 8px;\n  border: 1px solid #dbeafe;\n  background: white;\n  padding: 22px;\n}\n.feature-grid b {\n  display: block;\n  color: #0f172a;\n  font-size: 18px;\n}\n.feature-grid span {\n  display: block;\n  margin-top: 8px;\n  color: #64748b;\n  font-size: 15px;\n  line-height: 1.5;\n}\n@media (max-width: 860px) {\n  .site-nav {\n    align-items: flex-start;\n    flex-direction: column;\n    padding-block: 22px;\n  }\n  .hero {\n    grid-template-columns: 1fr;\n  }\n  .product-card {\n    min-height: 420px;\n  }\n  .feature-grid {\n    grid-template-columns: 1fr;\n  }\n}`,
-    },
+    generatedCode: emptyPreviewCode,
   };
 };
 
@@ -467,18 +474,100 @@ const NoProjectState = ({
   </div>
 );
 
+const getFunnelAnalysisRequiredMessage = (
+  status?: FunnelResponseStatus,
+  hasFunnelSections = false
+) => {
+  if (status === FunnelResponseStatus.IN_PROGRESS) {
+    return {
+      title: "퍼널 분석이 진행 중입니다",
+      description:
+        "분석이 완료되면 실제 이탈 구간을 기준으로 개선안을 생성할 수 있습니다.",
+      buttonLabel: "퍼널 분석 확인하기",
+    };
+  }
+
+  if (status === FunnelResponseStatus.FAILED) {
+    return {
+      title: "퍼널 분석이 완료되지 않았습니다",
+      description:
+        "퍼널 분석 화면에서 분석을 다시 진행한 뒤 랜딩 페이지 개선안을 생성해주세요.",
+      buttonLabel: "퍼널 분석 다시 하기",
+    };
+  }
+
+  if (status === FunnelResponseStatus.COMPLETED && !hasFunnelSections) {
+    return {
+      title: "분석된 퍼널이 없습니다",
+      description:
+        "개선안을 만들 수 있는 퍼널 데이터가 없습니다. 퍼널 분석 화면에서 분석 결과를 확인해주세요.",
+      buttonLabel: "퍼널 분석 확인하기",
+    };
+  }
+
+  return {
+    title: "퍼널 분석이 완료되지 않았습니다",
+    description:
+      "랜딩 페이지의 실제 이탈 구간을 먼저 분석해야 개선안을 생성할 수 있습니다. 퍼널 분석 화면에서 분석을 진행해주세요.",
+    buttonLabel: "퍼널 분석하기",
+  };
+};
+
+const FunnelAnalysisRequiredNotice = ({
+  status,
+  hasFunnelSections,
+  onOpenFunnelAnalysis,
+}: {
+  status?: FunnelResponseStatus;
+  hasFunnelSections: boolean;
+  onOpenFunnelAnalysis: () => void;
+}) => {
+  const message = getFunnelAnalysisRequiredMessage(status, hasFunnelSections);
+
+  return (
+    <div className="flex w-full flex-col gap-4">
+      <div className="flex w-full flex-col gap-1.5">
+        <SectionLabel>개선을 원하는 퍼널</SectionLabel>
+        <div className="flex min-h-[300px] w-full flex-col items-center justify-center gap-3 rounded-md bg-slate-100 px-6 py-8 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
+            <FunnelIcon className="h-5 w-5" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-base font-semibold leading-6 text-slate-800">
+              {message.title}
+            </p>
+            <p className="max-w-[320px] text-sm font-medium leading-5 text-slate-500">
+              {message.description}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenFunnelAnalysis}
+            className="mt-1 h-9 rounded-lg bg-blue-500 px-4 text-sm font-semibold leading-5 text-white transition hover:bg-blue-600"
+          >
+            {message.buttonLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const FunnelSelectPanel = ({
   projectState,
   selectedFunnel,
   selectedFunnelId,
   persona,
   reviewNotificationCount,
+  funnelAnalysisStatus,
+  canSelectFunnel,
   isProjectLoading,
   canGenerate,
   onSelectFunnel,
   onChangePersona,
   onGenerate,
   onOpenReview,
+  onOpenFunnelAnalysis,
   onPlaySession,
 }: {
   projectState: LandingProjectState;
@@ -486,12 +575,15 @@ const FunnelSelectPanel = ({
   selectedFunnelId: string;
   persona: string;
   reviewNotificationCount: number;
+  funnelAnalysisStatus?: FunnelResponseStatus;
+  canSelectFunnel: boolean;
   isProjectLoading: boolean;
   canGenerate: boolean;
   onSelectFunnel: (funnelId: string) => void;
   onChangePersona: (value: string) => void;
   onGenerate: () => void;
   onOpenReview: () => void;
+  onOpenFunnelAnalysis: () => void;
   onPlaySession: (sessionId: string) => void;
 }) => {
   const { data: droppedSessionsData, isLoading: isDroppedSessionsLoading } =
@@ -504,7 +596,8 @@ const FunnelSelectPanel = ({
       },
       {
         query: {
-          enabled: !!projectState.project.id && selectedFunnel?.sectionId != null,
+          enabled:
+            !!projectState.project.id && selectedFunnel?.sectionId != null,
           staleTime: 60_000,
           refetchOnWindowFocus: false,
           retry: 1,
@@ -576,7 +669,15 @@ const FunnelSelectPanel = ({
         </button>
       )}
 
-      <div className="flex w-full flex-col gap-4">
+      {!isProjectLoading && !canSelectFunnel ? (
+        <FunnelAnalysisRequiredNotice
+          status={funnelAnalysisStatus}
+          hasFunnelSections={projectState.funnels.length > 0}
+          onOpenFunnelAnalysis={onOpenFunnelAnalysis}
+        />
+      ) : (
+        <>
+          <div className="flex w-full flex-col gap-4">
         <div className="flex w-full flex-col gap-1.5">
           <SectionLabel>개선을 원하는 퍼널</SectionLabel>
           <label className="relative flex w-full items-center gap-2.5 rounded-md border border-slate-200 p-3">
@@ -705,16 +806,18 @@ const FunnelSelectPanel = ({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onGenerate}
-        disabled={!canGenerate}
-        className="relative flex h-10 w-full items-center justify-center gap-1 overflow-hidden rounded-lg bg-slate-900 p-2.5 text-sm font-semibold leading-5 text-white disabled:cursor-not-allowed disabled:bg-slate-500"
-      >
-        <ImproveActionIcon className="h-4 w-4" />
-        개선안 생성하기
-        <span className="absolute -right-7 -top-14 h-32 w-32 rounded-xl bg-blue-600 opacity-[0.33] blur-[32px]" />
-      </button>
+          <button
+            type="button"
+            onClick={onGenerate}
+            disabled={!canGenerate}
+            className="relative flex h-10 w-full items-center justify-center gap-1 overflow-hidden rounded-lg bg-slate-900 p-2.5 text-sm font-semibold leading-5 text-white disabled:cursor-not-allowed disabled:bg-slate-500"
+          >
+            <ImproveActionIcon className="h-4 w-4" />
+            개선안 생성하기
+            <span className="absolute -right-7 -top-14 h-32 w-32 rounded-xl bg-blue-600 opacity-[0.33] blur-[32px]" />
+          </button>
+        </>
+      )}
     </>
   );
 };
@@ -749,78 +852,144 @@ const ImprovementCard = ({
   onToggleExpanded: () => void;
   onToggleSelected: () => void;
   onPreviewWireframe: (wireframe?: string) => void;
-}) => (
-  <div
-    className={`flex w-full flex-col gap-2.5 rounded-md p-3 ${
-      isSelected ? "bg-blue-50" : "bg-slate-50"
-    }`}
-  >
-    <div className="flex h-6 w-full items-center gap-2">
-      <button
-        type="button"
-        onClick={onToggleSelected}
-        aria-label={`개선안 ${displayNumber} 선택`}
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
-          isSelected
-            ? "border-blue-500 bg-blue-500 text-white"
-            : "border-slate-800 bg-white"
+}) => {
+  const titleMeasureRef = useRef<HTMLSpanElement | null>(null);
+  const [isTitleOverflowing, setIsTitleOverflowing] = useState(false);
+  const shouldShowExpandedTitleBlock = isExpanded && isTitleOverflowing;
+
+  useEffect(() => {
+    const titleElement = titleMeasureRef.current;
+    if (!titleElement) return;
+
+    const updateTitleOverflow = () => {
+      setIsTitleOverflowing(
+        titleElement.scrollWidth > titleElement.clientWidth + 1
+      );
+    };
+
+    updateTitleOverflow();
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateTitleOverflow);
+
+    resizeObserver?.observe(titleElement);
+    window.addEventListener("resize", updateTitleOverflow);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", updateTitleOverflow);
+    };
+  }, [displayNumber, improvement.title]);
+
+  return (
+    <div
+      className={`flex w-full flex-col gap-2.5 rounded-md p-3 ${
+        isSelected ? "bg-blue-50" : "bg-slate-50"
+      }`}
+    >
+      <div
+        className={`flex w-full gap-2 ${
+          shouldShowExpandedTitleBlock ? "items-start" : "items-center"
         }`}
       >
-        {isSelected && <CheckIcon className="h-4 w-4" />}
-      </button>
-      <button
-        type="button"
-        onClick={onToggleExpanded}
-        className="min-w-0 flex-1 text-left text-sm font-medium leading-5 text-slate-800"
-      >
-        <span>개선안 </span>
-        <span className="font-bold">#{displayNumber}: </span>
-        <span>{improvement.title}</span>
-      </button>
-      <button
-        type="button"
-        onClick={onToggleExpanded}
-        aria-label={isExpanded ? "개선안 접기" : "개선안 펼치기"}
-        className="flex h-6 w-6 shrink-0 items-center justify-center"
-      >
-        {isExpanded ? (
-          <ChevronUpIcon className="h-6 w-6 text-slate-900" />
-        ) : (
-          <ChevronDownIcon className="h-6 w-6 text-slate-900" />
-        )}
-      </button>
-    </div>
-
-    {isExpanded && (
-      <>
-        <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
-          <p className="font-medium text-slate-600">보이는 문제</p>
-          <p className="font-normal text-slate-800">{improvement.problem}</p>
-        </div>
-        <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
-          <p className="font-medium text-slate-600">변경 예정 내용</p>
-          <ul className="list-disc pl-5 font-normal text-slate-800">
-            {improvement.changes.map((change) => (
-              <li key={change}>{change}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
-          <p className="font-medium text-slate-600">예상 효과</p>
-          <p className="font-normal text-slate-800">{improvement.effect}</p>
-        </div>
         <button
           type="button"
-          onClick={() => onPreviewWireframe(improvement.wireframe)}
-          className="flex h-10 w-full items-center justify-center gap-1 rounded-lg bg-blue-500 p-2.5 text-sm font-semibold leading-5 text-white transition hover:bg-blue-600 active:scale-[0.99]"
+          onClick={onToggleSelected}
+          aria-label={`개선안 ${displayNumber} 선택`}
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
+            isSelected
+              ? "border-blue-500 bg-blue-500 text-white"
+              : "border-slate-800 bg-white"
+          }`}
         >
-          <DashboardIcon className="h-4 w-4 shrink-0" />
-          개선안 미리 보기
+          {isSelected && <CheckIcon className="h-4 w-4" />}
         </button>
-      </>
-    )}
-  </div>
-);
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          className="relative min-w-0 flex-1 text-left text-sm font-medium leading-5 text-slate-800"
+        >
+          <span
+            ref={titleMeasureRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 block truncate whitespace-nowrap opacity-0"
+          >
+            개선안{" "}
+            <span className="font-bold">#{displayNumber}: </span>
+            {improvement.title}
+          </span>
+
+          {shouldShowExpandedTitleBlock ? (
+            <span className="block">
+              <span className="block">
+                개선안{" "}
+                <span className="font-bold">#{displayNumber}: </span>
+              </span>
+              <span className="block whitespace-normal break-words">
+                {improvement.title}
+              </span>
+            </span>
+          ) : (
+            <span
+              className={`block ${
+                isExpanded
+                  ? "whitespace-normal break-words"
+                  : "truncate whitespace-nowrap"
+              }`}
+            >
+              <span>개선안 </span>
+              <span className="font-bold">#{displayNumber}: </span>
+              <span>{improvement.title}</span>
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          aria-label={isExpanded ? "개선안 접기" : "개선안 펼치기"}
+          className="flex h-6 w-6 shrink-0 items-center justify-center"
+        >
+          {isExpanded ? (
+            <ChevronUpIcon className="h-6 w-6 text-slate-900" />
+          ) : (
+            <ChevronDownIcon className="h-6 w-6 text-slate-900" />
+          )}
+        </button>
+      </div>
+
+      {isExpanded && (
+        <>
+          <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
+            <p className="font-medium text-slate-600">보이는 문제</p>
+            <p className="font-normal text-slate-800">{improvement.problem}</p>
+          </div>
+          <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
+            <p className="font-medium text-slate-600">변경 예정 내용</p>
+            <ul className="list-disc pl-5 font-normal text-slate-800">
+              {improvement.changes.map((change) => (
+                <li key={change}>{change}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex w-full flex-col gap-1.5 text-sm leading-5">
+            <p className="font-medium text-slate-600">예상 효과</p>
+            <p className="font-normal text-slate-800">{improvement.effect}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onPreviewWireframe(improvement.wireframe)}
+            className="flex h-10 w-full items-center justify-center gap-1 rounded-lg bg-blue-500 p-2.5 text-sm font-semibold leading-5 text-white transition hover:bg-blue-600 active:scale-[0.99]"
+          >
+            <DashboardIcon className="h-4 w-4 shrink-0" />
+            개선안 미리 보기
+          </button>
+        </>
+      )}
+    </div>
+  );
+};
 
 const ImprovementReviewPanel = ({
   improvements,
@@ -1118,6 +1287,8 @@ const ImprovementPanel = ({
   selectedImprovementIds,
   pendingOptimizationPlans,
   reviewNotificationCount,
+  funnelAnalysisStatus,
+  canSelectFunnel,
   codegenVersions,
   currentCodegenVersionKey,
   isCodegenVersionsLoading,
@@ -1128,6 +1299,7 @@ const ImprovementPanel = ({
   onChangePersona,
   onGenerate,
   onOpenReview,
+  onOpenFunnelAnalysis,
   onReviewOptimizationPlan,
   onToggleImprovement,
   onPreviewWireframe,
@@ -1144,6 +1316,8 @@ const ImprovementPanel = ({
   selectedImprovementIds: number[];
   pendingOptimizationPlans: PendingOptimizationPlan[];
   reviewNotificationCount: number;
+  funnelAnalysisStatus?: FunnelResponseStatus;
+  canSelectFunnel: boolean;
   codegenVersions: AppliedCodegenVersion[];
   currentCodegenVersionKey: string;
   isCodegenVersionsLoading: boolean;
@@ -1154,6 +1328,7 @@ const ImprovementPanel = ({
   onChangePersona: (value: string) => void;
   onGenerate: () => void;
   onOpenReview: () => void;
+  onOpenFunnelAnalysis: () => void;
   onReviewOptimizationPlan: (plan: PendingOptimizationPlan) => void;
   onToggleImprovement: (id: number) => void;
   onPreviewWireframe: (wireframe?: string) => void;
@@ -1175,12 +1350,15 @@ const ImprovementPanel = ({
           selectedFunnelId={selectedFunnelId}
           persona={persona}
           reviewNotificationCount={reviewNotificationCount}
+          funnelAnalysisStatus={funnelAnalysisStatus}
+          canSelectFunnel={canSelectFunnel}
           isProjectLoading={isProjectLoading}
           canGenerate={canGenerate}
           onSelectFunnel={onSelectFunnel}
           onChangePersona={onChangePersona}
           onGenerate={onGenerate}
           onOpenReview={onOpenReview}
+          onOpenFunnelAnalysis={onOpenFunnelAnalysis}
           onPlaySession={onPlaySession}
         />
       )}
@@ -1292,6 +1470,69 @@ const TopBar = ({
   </div>
 );
 
+const emptyWireframePreviewHtml = `<main class="min-h-screen bg-slate-50 p-6 text-slate-950">
+  <section class="mx-auto flex w-full max-w-5xl flex-col gap-4">
+    <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <div class="flex items-center gap-3">
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-sm font-bold text-blue-500">W</span>
+        <div>
+          <p class="text-sm font-semibold leading-5 text-slate-900">생성된 Wireframe이 없습니다</p>
+          <p class="text-xs font-medium leading-4 text-slate-500">선택한 개선안에 포함된 HTML이 없습니다.</p>
+        </div>
+      </div>
+      <span class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Preview</span>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
+      <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
+          <div class="h-3 w-28 rounded-full bg-slate-200"></div>
+          <div class="flex gap-2">
+            <div class="h-3 w-12 rounded-full bg-slate-100"></div>
+            <div class="h-3 w-12 rounded-full bg-slate-100"></div>
+            <div class="h-3 w-12 rounded-full bg-slate-100"></div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <span class="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-500">Wireframe draft</span>
+          <div class="h-8 w-4/5 rounded-md bg-slate-900"></div>
+          <div class="h-8 w-3/5 rounded-md bg-slate-900"></div>
+          <div class="space-y-2 pt-1">
+            <div class="h-3 w-full rounded-full bg-slate-200"></div>
+            <div class="h-3 w-11/12 rounded-full bg-slate-200"></div>
+            <div class="h-3 w-8/12 rounded-full bg-slate-200"></div>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 pt-2">
+            <div class="h-10 w-36 rounded-lg bg-blue-500"></div>
+            <div class="h-10 w-28 rounded-lg border border-slate-200 bg-white"></div>
+            <div class="h-3 w-32 rounded-full bg-slate-200"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="flex flex-col gap-4">
+        <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="mb-3 h-4 w-28 rounded-full bg-slate-800"></div>
+          <div class="space-y-2">
+            <div class="h-3 w-full rounded-full bg-slate-200"></div>
+            <div class="h-3 w-10/12 rounded-full bg-slate-200"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 p-4">
+            <div class="mb-3 h-7 w-7 rounded-md bg-blue-500"></div>
+            <div class="h-3 w-16 rounded-full bg-blue-200"></div>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-white p-4">
+            <div class="mb-3 h-7 w-7 rounded-md bg-slate-200"></div>
+            <div class="h-3 w-16 rounded-full bg-slate-200"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>`;
+
 const WireframePreviewModal = ({
   wireframeHtml,
   projectUrl,
@@ -1304,9 +1545,7 @@ const WireframePreviewModal = ({
   onClose: () => void;
 }) => {
   const trimmedWireframeHtml = wireframeHtml.trim();
-  const previewHtml = trimmedWireframeHtml
-    ? trimmedWireframeHtml
-    : `<div class="flex min-h-screen w-full items-center justify-center p-6 text-lg font-semibold text-slate-800">생성된 Wireframe이 없습니다</div>`;
+  const previewHtml = trimmedWireframeHtml || emptyWireframePreviewHtml;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -1330,30 +1569,44 @@ const WireframePreviewModal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="wireframe-preview-title"
-        className="flex flex-col gap-3 overflow-hidden rounded-xl border border-slate-300 bg-white p-3.5 shadow-[0px_0px_16px_4px_rgba(15,23,42,0.25)]"
+        className="flex w-[min(1080px,calc(100vw-32px))] flex-col gap-3 overflow-hidden rounded-xl border border-slate-300 bg-white p-3.5 shadow-[0px_0px_16px_4px_rgba(15,23,42,0.25)]"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <p
-          id="wireframe-preview-title"
-          className="text-sm font-medium leading-5 text-slate-600"
-        >
-          개선안 미리 보기
-        </p>
+        <div className="flex items-center">
+          <div className="min-w-0 flex-1">
+            <p
+              id="wireframe-preview-title"
+              className="text-sm font-semibold text-slate-800"
+            >
+              개선안 미리 보기
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            aria-label="개선안 미리 보기 닫기"
+          >
+            <CloseIcon className="h-6 w-6" />
+          </button>
+        </div>
         <div
-          className="flex items-center justify-center overflow-hidden bg-white"
+          className="flex items-center justify-center overflow-hidden rounded-lg border border-slate-200"
           style={{
-            width: "min(512px, calc(100vw - 48px))",
-            height: "min(512px, calc(100vh - 120px))",
+            height: "min(800px, calc(100vh - 120px))",
           }}
         >
-          <HtmlCssPreviewFrame
-            title="개선안 미리 보기"
-            previewCode={{ html: previewHtml, css: "" }}
-            baseUrl={projectUrl}
-            reloadKey={reloadKey}
-            includeTailwind
-            bodyClassName="bg-white text-slate-950 antialiased"
-          />
+          <div className="h-full w-full overflow-hidden">
+            <HtmlCssPreviewFrame
+              title="개선안 미리 보기"
+              previewCode={{ html: previewHtml, css: "" }}
+              baseUrl={projectUrl}
+              reloadKey={reloadKey}
+              includeTailwind
+              bodyClassName="bg-white text-slate-950 antialiased"
+              hideScrollbar
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -1364,10 +1617,12 @@ const LandingImprovementContent = ({
   projectState,
   isProjectLoading,
   isFunnelLoading,
+  funnelAnalysisStatus,
 }: {
   projectState: LandingProjectState;
   isProjectLoading: boolean;
   isFunnelLoading: boolean;
+  funnelAnalysisStatus?: FunnelResponseStatus;
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -1375,9 +1630,7 @@ const LandingImprovementContent = ({
   const [selectedFunnelId, setSelectedFunnelId] = useState("");
   const [persona, setPersona] = useState("");
   const [panelMode, setPanelMode] = useState<PanelMode>("create");
-  const [isPanelOpen, setIsPanelOpen] = useState(
-    hasInitialCreatePanelRequest
-  );
+  const [isPanelOpen, setIsPanelOpen] = useState(hasInitialCreatePanelRequest);
   const [selectedImprovementIds, setSelectedImprovementIds] = useState<
     number[]
   >([]);
@@ -1422,6 +1675,9 @@ const LandingImprovementContent = ({
   );
   const effectiveSelectedFunnelId = selectedFunnel?.id ?? "";
   const selectedSectionId = selectedFunnel?.sectionId ?? 0;
+  const canSelectFunnel =
+    funnelAnalysisStatus === FunnelResponseStatus.COMPLETED &&
+    projectState.funnels.length > 0;
   const optimizationPlanFunnels = useMemo(
     () =>
       projectState.funnels.filter(
@@ -1664,6 +1920,7 @@ const LandingImprovementContent = ({
     ]
   );
   const canGenerate =
+    canSelectFunnel &&
     !!selectedFunnel &&
     !!selectedSectionId &&
     persona.trim().length > 0 &&
@@ -1756,6 +2013,11 @@ const LandingImprovementContent = ({
   const handleOpenReview = () => {
     setSelectedImprovementIds([]);
     setPanelMode("optimizationSelect");
+  };
+
+  const handleOpenFunnelAnalysis = () => {
+    setIsPanelOpen(false);
+    navigate("/report");
   };
 
   const handleReviewOptimizationPlan = (plan: PendingOptimizationPlan) => {
@@ -1895,6 +2157,8 @@ const LandingImprovementContent = ({
             selectedImprovementIds={selectedImprovementIds}
             pendingOptimizationPlans={pendingOptimizationPlans}
             reviewNotificationCount={reviewNotificationCount}
+            funnelAnalysisStatus={funnelAnalysisStatus}
+            canSelectFunnel={canSelectFunnel}
             codegenVersions={codegenVersions}
             currentCodegenVersionKey={effectiveCodegenVersionKey}
             isCodegenVersionsLoading={
@@ -1911,6 +2175,7 @@ const LandingImprovementContent = ({
             onChangePersona={setPersona}
             onGenerate={handleGenerate}
             onOpenReview={handleOpenReview}
+            onOpenFunnelAnalysis={handleOpenFunnelAnalysis}
             onReviewOptimizationPlan={handleReviewOptimizationPlan}
             onToggleImprovement={handleToggleImprovement}
             onPreviewWireframe={handlePreviewWireframe}
@@ -2019,7 +2284,8 @@ const Improve = () => {
         projectContext,
         funnelDataResponse?.status === FunnelResponseStatus.COMPLETED
           ? funnelDataResponse.funnelData
-          : undefined
+          : undefined,
+        false
       ),
     [funnelDataResponse, projectContext]
   );
@@ -2046,6 +2312,7 @@ const Improve = () => {
         isFunnelLoading ||
         funnelDataResponse?.status === FunnelResponseStatus.IN_PROGRESS
       }
+      funnelAnalysisStatus={funnelDataResponse?.status}
     />
   );
 };

@@ -11,6 +11,7 @@ interface FunnelStageDetailPanelProps {
   stages: FunnelStage[];
   isLoading?: boolean;
   onPlaySession?: (sessionId: string) => void;
+  onImproveFunnel?: () => void;
 }
 
 const toPercent = (ratio: number) => ratio * 100;
@@ -81,6 +82,7 @@ const FunnelStageDetailPanel = ({
   stages,
   isLoading = false,
   onPlaySession,
+  onImproveFunnel,
 }: FunnelStageDetailPanelProps) => {
   const { data: droppedSessionsData, isLoading: isDroppedSessionsLoading } =
     useGetRecentSessions(
@@ -313,7 +315,9 @@ const FunnelStageDetailPanel = ({
       <div className="mt-auto pt-4">
         <button
           type="button"
-          className="w-full h-10 rounded-lg bg-slate-900 text-white text-sm font-semibold flex items-center justify-center gap-1 relative overflow-hidden"
+          onClick={onImproveFunnel}
+          disabled={isLoading || !onImproveFunnel}
+          className="w-full h-10 rounded-lg bg-slate-900 text-white text-sm font-semibold flex items-center justify-center gap-1 relative overflow-hidden disabled:cursor-not-allowed disabled:bg-slate-500"
         >
           <ImproveActionIcon className="text-base" />
           퍼널 개선하기
