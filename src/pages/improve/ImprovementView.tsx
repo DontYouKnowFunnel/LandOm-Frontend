@@ -3,6 +3,7 @@ import {
   CheckLineIcon,
   CopyIcon,
   DragHorizontalIcon,
+  FileOutlineIcon,
 } from "../../components/Icons";
 import FloatingImproveButton from "./components/FloatingImproveButton";
 import FloatingTooltip from "./components/FloatingTooltip";
@@ -110,6 +111,32 @@ const ImprovementView = ({
     },
     []
   );
+
+  if (!hasGeneratedCode) {
+    return (
+      <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-slate-50 px-6 py-10">
+        <div className="flex w-full max-w-[420px] flex-col items-center text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-500">
+            <FileOutlineIcon className="h-8 w-8" />
+          </div>
+          <h2 className="mt-5 text-xl font-semibold leading-7 text-slate-900">
+            보여줄 개선안이 없습니다
+          </h2>
+          <p className="mt-2 text-sm font-medium leading-5 text-slate-500">
+            생성된 개선안 적용 코드가 없어 미리보기를 표시할 수 없습니다.
+            개선안을 생성하거나 적용 코드를 만든 뒤 다시 확인해주세요.
+          </p>
+        </div>
+
+        {showFloatingButton && (
+          <FloatingImproveButton
+            notificationCount={notificationCount}
+            onOpenPanel={onOpenPanel}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-0 flex-1 overflow-hidden bg-white">

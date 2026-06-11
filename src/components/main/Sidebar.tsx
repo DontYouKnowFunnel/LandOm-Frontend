@@ -20,6 +20,7 @@ import ProjectSelector from "./ProjectSelector";
 import type { ProjectItem } from "./ProjectSelector";
 import NewProjectModal from "./NewProjectModal";
 import ProjectSettingModal from "./ProjectSettingModal";
+import UserAccountMenu from "./UserAccountMenu";
 
 type SidebarProps = HTMLAttributes<HTMLDivElement>;
 
@@ -215,9 +216,7 @@ const Sidebar = ({ ...props }: SidebarProps) => {
         >
           LandOm
         </span>
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100">
-          <span className="text-xs font-bold text-blue-500">JD</span>
-        </div>
+        <UserAccountMenu isCollapsed={isCollapsed} />
       </div>
 
       <NewProjectModal
